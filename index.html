@@ -71,7 +71,7 @@ var IV=[0,1,3,7,16,35,70,140];          // takrorlash oraliqlari (kun)
 var MAXREV=10;                          // bir martada ko'pi bilan nechta takrorlash
 var Q=new URLSearchParams(location.search);
 var DAY=parseInt(Q.get("d"),10);
-var ONLYREV=Q.get("m")==="review",TESTMODE=Q.get("m")==="test";
+var TESTMODE=Q.get("m")==="test",OLD=[];
 var LID=Q.get("l")===null||Q.get("l")===""?NaN:Number(Q.get("l")),PASS=0.7;
 var tg=window.Telegram&&Telegram.WebApp,inTG=!!(tg&&tg.platform&&tg.platform!=="unknown");
 try{if(tg){tg.ready();tg.expand();if(tg.colorScheme)document.documentElement.setAttribute("data-theme",tg.colorScheme)}}catch(e){}
@@ -132,16 +132,11 @@ function learnedAll(){var out=[];Object.keys(S).forEach(function(k){if(!/^s\d+$/
   for(var i=0;i<day.i.length;i++)if(v[i])out.push({day:d,idx:i,it:day.i[i]})});return out}
 
 /* ============ bosh sahifa (yo'l xaritasi) ============ */
-function home(){L=null;R=null;
-  if(ONLYREV&&!(DAYS[DAY-1]))return rev();
-  var due=dueAll().length,learned=learnedAll().length;
-  var hot=due>0;
-  var rvText=hot?due+" ta gap esdan chiqayotgan, takrorlang!":learned?"Hozircha hammasi esda. Mustahkamlash uchun bosing":"Birinchi darsni tugatgach shu yerda ochiladi";
+function home(){L=null;
   var day=DAYS[DAY-1];
   var nodes=UN.map(function(u,i){var st=i<dayRec.p?"done":i===dayRec.p?"cur":"lock";return node(i,st,u.e,u.n)});
-  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length,mst,"🏆","Mega test"));
-  $("#app").innerHTML='<div class="hd"><span class="y">🔥 '+G.sk+'</span><span class="p">⭐ '+G.xp+' XP</span><span class="h">❤️ 3</span></div>'+
-    '<button class="rv'+(hot?" hot":"")+'" onclick="rev()">🧠 <b>Takrorlash</b><br><small>'+esc(rvText)+'</small></button>'+
+  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length,mst,"🏆","Yakuniy test"));
+  $("#app").innerHTML='<div class="hd"><span class="y">🔥 '+G.sk+'</span><span class="p">⭐ '+G.xp+' XP</span><span class="h">❤️ 5</span></div>'+
     '<div class="unit"><small>'+day.lv+' · KUN '+DAY+'</small><h2>'+esc(day.t)+' ('+day.p+'/'+day.k+')</h2></div>'+
     '<div class="path">'+nodes.join("")+'</div>'+
     (dayRec.p>UN.length?'<div class="bd"><div class="note" style="text-align:center">🎉 Bugungi dars tayyor! Botga qaytib, shu kunning testini bosing.</div></div>':'')}
@@ -152,30 +147,32 @@ function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
 function distract(item,field,n){var Ln=item[field].length;
   var c=POOL.filter(function(x){return x[0]!==item[0]&&x[field]!==item[field]&&Math.abs(x[field].length-Ln)<=Math.max(8,Ln*.5)});
   if(c.length<n)c=POOL.filter(function(x){return x[0]!==item[0]});return sh(c).slice(0,n).map(function(x){return x[field]})}
-function exMC(k,t){var it=its[k];var f=t==="uzru"?1:2;return {t:t,k:k,o:sh([it[f]].concat(distract(it,f,3)))}}
-function exBuild(k){var it=its[k],w=words(it[1]);if(w.length<3)return exMC(k,"mc");
+function mcI(it,t){var f=t==="uzru"?1:2;return {t:t,item:it,o:sh([it[f]].concat(distract(it,f,3)))}}
+function buildI(it){var w=words(it[1]);if(w.length<3)return mcI(it,"uzru");
   var ex=[];sh(POOL).some(function(x){words(x[1]).forEach(function(z){if(ex.length<2&&w.indexOf(z)<0&&ex.indexOf(z)<0&&z.length>1)ex.push(z)});return ex.length>=2});
-  return {t:"build",k:k,pool:sh(w.concat(ex).map(function(x,i){return {w:x,i:i}}))}}
-function mk(u){var ks=u<UN.length?UN[u].k:its.map(function(_,i){return i}),q=[],ex=[];
-  if(u<UN.length){ks.forEach(function(k){q.push({t:"teach",k:k},{t:"say",k:k})});
-    ks.forEach(function(k){ex.push(exMC(k,"mc"),exBuild(k),exMC(k,"ls"))});q=q.concat(sh(ex))}
-  else{ks.forEach(function(k,j){ex.push(j%2?exBuild(k):exMC(k,"mc"),exMC(k,j%2?"ls":"uzru"))});q=sh(ex)}
+  return {t:"build",item:it,pool:sh(w.concat(ex).map(function(x,i){return {w:x,i:i}}))}}
+function exMC(k,t){var e=mcI(its[k],t);e.k=k;return e}
+function exBuild(k){var e=buildI(its[k]);e.k=k;return e}
+function exOld(w){var e=Math.random()<.5?mcI(w.it,"mc"):buildI(w.it);e.old=w;e.k=-1;return e}
+function mk(u){var q=[];
+  if(u<UN.length){var ks=UN[u].k;
+    ks.forEach(function(k){q.push({t:"teach",k:k,item:its[k]})});
+    var a=sh(ks.map(function(k){return exMC(k,"mc")})),b=sh(ks.map(function(k){return exBuild(k)}));
+    if(OLD[u])b.splice(Math.floor(Math.random()*(b.length+1)),0,exOld(OLD[u]));
+    q=q.concat(a,b)}
+  else{q=sh(its.map(function(_,k){var r=Math.floor(Math.random()*3);return r===0?exMC(k,"mc"):r===1?exMC(k,"uzru"):exBuild(k)}))}
   return q}
-function start(u){var q=mk(u);L={u:u,q:q,i:0,d:0,tot:q.length,hp:3,st:"ask",sel:null,pick:[],xp:0,err:0};draw()}
+function start(u){var q=mk(u);L={u:u,q:q,i:0,d:0,tot:q.length,hp:5,st:"ask",sel:null,pick:[],xp:0,err:0};draw()}
 
-function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():fin();var s=its[it.k],b="",ft="";
-  if(it.t==="teach"){
-    b='<div class="owl"><div class="o">🦊</div><div class="bub">Yangi gap!</div></div><div class="ru">'+esc(s[1])+'<button class="spk" onclick="sayK('+it.k+')">🔊</button></div><div class="tr">🗣 '+esc(trl(s[1]))+'</div><div class="uz">'+esc(s[2])+'</div><div class="when">📍 <b>Mavzu:</b> '+esc(DAYS[DAY-1].t)+'</div>';
-    ft='<div class="ft"><button class="btn" onclick="nxt(1)">Tushunarli</button></div>';setTimeout(function(){sayK(it.k)},250)}
-  else if(it.t==="say"){var SR=hasSR();
-    b='<div class="q">Eshiting va takrorlang</div><div class="ru">'+esc(s[1])+'<button class="spk" onclick="sayK('+it.k+')">🔊</button></div><div class="tr">🗣 '+esc(trl(s[1]))+'</div><div class="uz">'+esc(s[2])+'</div><div style="text-align:center;margin:26px 0">'+(SR?'<button class="mic" onclick="mic('+it.k+')">🎤</button>':'')+'<div id="mg" class="mg">'+(SR?'Tugmani bosib, ruscha ayting':'Ovoz chiqarib ruscha ayting')+'</div></div>';
-    ft=L.st==="ok"?'<div class="ft ok"><div class="fm">✅ Ofarin!</div><div style="margin-bottom:12px">Eshitildi: “'+esc(L.heard||"")+'”</div><button class="btn" onclick="nxt(1)">Davom etish</button></div>':'<div class="ft"><button class="btn'+(SR?" sk":"")+'" onclick="nxt(1)">'+(SR?"O‘tkazib yuborish":"Aytdim, davom etish")+'</button></div>'}
+function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():fin();var s=it.item,b="",ft="";
+  if(it.t==="teach"){var nT=L.q.filter(function(x){return x.t==="teach"}).length;
+    b='<div class="owl"><div class="o">🦊</div><div class="bub">Yangi gap '+(L.i+1)+'/'+nT+'</div></div><div class="ru">'+esc(s[1])+'<button class="spk" onclick="sayT(L.q[L.i].item[1])" aria-label="Eshitish">🔊</button></div><div class="tr">🗣 '+esc(trl(s[1]))+'</div><div class="uz">'+esc(s[2])+'</div><div class="when">📍 <b>Mavzu:</b> '+esc(DAYS[DAY-1].t)+'</div>';
+    ft='<div class="ft"><button class="btn" onclick="nxt(1)">Tushunarli</button></div>'}
   else{
     if(it.t==="build"){
       b='<div class="q">Ruscha tuzing</div><div class="uz" style="margin-bottom:6px">'+esc(s[2])+'</div><div class="ans">'+L.pick.map(function(p,j){return '<button class="tl" onclick="ub('+j+')">'+esc(p.w)+'</button>'}).join("")+'</div><div class="bank">'+it.pool.map(function(p,j){return '<button class="tl" onclick="ab('+j+')">'+esc(p.w)+'</button>'}).join("")+'</div>'}
-    else{var title=it.t==="mc"?"Bu o‘zbekchada nima?":it.t==="ls"?"Eshiting: bu nima?":"Ruscha qanday aytiladi?";
-      var head=it.t==="mc"?'<div class="ru" style="margin-bottom:16px">'+esc(s[1])+'<button class="spk" onclick="sayK('+it.k+')">🔊</button></div>':it.t==="ls"?'<div style="margin-bottom:16px"><button class="spk" style="width:72px;height:72px;font-size:32px" onclick="sayK('+it.k+')">🔊</button></div>':'<div class="bub" style="margin-bottom:16px;font-size:20px">'+esc(s[2])+'</div>';
-      if(it.t==="ls"&&L.st==="ask")setTimeout(function(){sayK(it.k)},250);
+    else{var title=it.t==="mc"?"Bu o‘zbekchada nima?":"Ruscha qanday aytiladi?";
+      var head=it.t==="mc"?'<div class="ru" style="margin-bottom:16px">'+esc(s[1])+'</div>':'<div class="bub" style="margin-bottom:16px;font-size:20px">'+esc(s[2])+'</div>';
       var ans=it.t==="uzru"?s[1]:s[2];
       b='<div class="q">'+title+'</div>'+head+it.o.map(function(o,j){var cls=L.st==="ask"?(L.sel===j?"sel":""):(o===ans?"ok":(L.sel===j?"no":""));
         return '<button class="op '+cls+'" '+(L.st==="ask"?'onclick="L.sel='+j+';draw()"':'')+'>'+esc(o)+'</button>'}).join("")}
@@ -183,15 +180,18 @@ function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():fin();var s=its[i
     if(L.st==="ask")ft='<div class="ft"><button class="btn" '+(ready?"":"disabled")+' onclick="chk()">Tekshirish</button></div>';
     else ft='<div class="ft '+L.st+'"><div class="fm">'+(L.st==="ok"?"✅ Ofarin!":"❌ To‘g‘ri javob:")+'</div>'+(L.st==="no"?'<div style="margin-bottom:12px;font-weight:800">'+esc(s[1])+'<br>'+esc(s[2])+'</div>':'')+'<button class="btn" onclick="nxt('+(L.st==="ok"?1:0)+')">Davom etish</button></div>'}
   $("#app").innerHTML='<div class="top"><button class="x" onclick="home()">✕</button><div class="pg"><i style="width:'+(L.d/L.tot*100)+'%"></i></div><span style="color:'+(L.test?"var(--b)":"var(--r)")+';font-weight:900;font-size:18px">'+(L.test?"TEST":"❤️ "+L.hp)+'</span></div><div class="bd">'+b+'</div>'+ft}
-function sayK(k){sayT(its[k][1])}
 function ab(j){var it=L.q[L.i];L.pick.push(it.pool.splice(j,1)[0]);draw()}
 function ub(j){if(L.st!=="ask")return;var it=L.q[L.i];it.pool.push(L.pick.splice(j,1)[0]);draw()}
-function chk(){var it=L.q[L.i],s=its[it.k],ok;
+function markOld(w,ok){var t=today(),key="s"+w.day,rec=S[key]||{v:[],p:0},v=(rec.v||[]).slice(),c=v[w.idx]||[1,t+1];
+  c=ok?[Math.min(7,c[0]+1),0]:[1,t+1];if(ok)c[1]=t+IV[c[0]];v[w.idx]=c;var nr={v:v,p:rec.p||0};Store.put(key,nr);S[key]=nr}
+function chk(){var it=L.q[L.i],s=it.item,ok;
   if(it.t==="build")ok=norm(L.pick.map(function(p){return p.w}).join(" "))===norm(s[1]);
   else ok=it.o[L.sel]===(it.t==="uzru"?s[1]:s[2]);
   L.st=ok?"ok":"no";
-  if(ok){snd(660);snd(880,.2);hap(true);L.xp+=10;if(it.t!=="mc")sayK(it.k)}
-  else{snd(200,.3);hap(false);L.err++;if(L.test){L.miss.push(it.k)}else{L.hp--;L.q.push(it.t==="build"?exBuild(it.k):exMC(it.k,it.t));L.tot++}}
+  if(it.old){markOld(it.old,ok);it.old=null}
+  if(ok){snd(660);snd(880,.2);hap(true);L.xp+=10}
+  else{snd(200,.3);hap(false);L.err++;
+    if(L.test){L.miss.push(it.k)}else{L.hp--;var c=it.t==="build"?buildI(s):mcI(s,it.t);c.k=it.k;L.q.push(c);L.tot++}}
   draw()}
 function nxt(ok){if(ok)L.d++;L.i++;L.st="ask";L.sel=null;L.pick=[];if(L.hp<=0)return dead();draw()}
 function dead(){$("#app").innerHTML='<div class="end"><div class="e">💔</div><h1 style="color:var(--r)">Jonlar tugadi</h1><p>Xafa bo‘lmang, takrorlash eng yaxshi o‘qituvchi!</p><div class="bd"><button class="btn" onclick="start('+L.u+')">Qayta urinish</button><br><br><button class="op" style="text-align:center" onclick="home()">Bosh sahifa</button></div></div>'}
@@ -218,45 +218,9 @@ function finTest(){var N=its.length,miss=L.miss.filter(function(k,i,a){return a.
     (can?'<button class="btn" id="sendb">Natijani botga yuborish</button>':'<div class="note">Bu test Telegram bot tugmasi orqali ochilishi kerak, aks holda natija botga yetmaydi.</div>')+'</div>';
   var sb=document.getElementById("sendb");if(sb)sb.onclick=function(){sb.disabled=true;try{tg.sendData(payload)}catch(e){sb.disabled=false}}}
 
-/* ============ mikrofon ============ */
-function hasSR(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition)&&!/iPhone|iPad|iPod/.test(navigator.userAgent)}
-function sim(a,b){a=norm(a).split(" ");b=norm(b).split(" ");return b.filter(function(w){return a.indexOf(w)>=0}).length/b.length}
-function mic(k){var m=$("#mg"),SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){m.textContent="Bu qurilmada ovoz tanish yo‘q. O‘tkazib yuboring.";return}
-  m.textContent="🎤 Eshityapman… ruscha ayting";var dn=0,r=new SR();r.lang="ru-RU";r.maxAlternatives=3;var ref=R?R.cur.it[1]:its[k][1];
-  r.onresult=function(e){dn=1;var best=0,tx="";for(var i=0;i<e.results[0].length;i++){var a=e.results[0][i],s=sim(a.transcript,ref);if(s>=best){best=s;tx=a.transcript}}
-    if(best>=.6)good(tx);else m.innerHTML="Eshitildi: “"+esc(tx)+"”<br>Yana urinib ko‘ring 🔁"};
-  r.onerror=function(e){dn=1;m.textContent=e.error==="not-allowed"?"Mikrofonga ruxsat berilmagan. O‘tkazib yuboring.":"Eshitilmadi, yana bosing."};
-  r.onend=function(){if(!dn)m.textContent="Ovoz eshitilmadi, yana bosing."};try{r.start()}catch(e){}}
-function good(tx){snd(660);snd(880,.2);if(R){$("#mg").innerHTML="✅ To‘g‘ri aytdingiz! “"+esc(tx)+"”";return}L.xp+=10;L.st="ok";L.heard=tx;draw()}
-
-/* ============ takrorlash (esdan chiqmasligi uchun) ============ */
-function rev(){var due=dueAll(),pr=0,list;
-  if(due.length)list=due.slice(0,MAXREV);
-  else{list=sh(learnedAll()).slice(0,MAXREV);pr=1}
-  if(!list.length){$("#app").innerHTML='<div class="end"><div class="e">🧠</div><h1>Hali takrorlaydigan gap yo‘q</h1><p class="note">Birinchi darsni tugating, keyin gaplar shu yerda paydo bo‘ladi.</p><div class="bd">'+(DAYS[DAY-1]?'<button class="btn" onclick="home()">Darsga qaytish</button>':'')+'</div></div>';return}
-  R={q:list,i:0,pr:pr,show:0,tot:list.length,xp:0,ok:0,cur:null};drR()}
-function drR(){if(R.i>=R.q.length)return fR();var w=R.q[R.i];R.cur=w;var s=w.it,b,f;
-  if(!R.show){b='<div class="q">Esingizdan ayting! 🧠</div><div class="uz" style="margin-bottom:10px">'+esc(s[2])+'</div><p style="color:var(--mut)">Ruscha qanday aytiladi? Avval ovoz chiqarib ayting, keyin tekshiring.</p>'+
-    '<div style="text-align:center;margin:20px 0">'+(hasSR()?'<button class="mic" onclick="mic(0)">🎤</button>':'')+'<div id="mg" class="mg">'+(hasSR()?"Yoki o‘zingizcha ayting":"Ovoz chiqarib ayting")+'</div></div>';
-    f='<div class="ft"><button class="btn" onclick="R.show=1;drR()">Javobni ko‘rsat</button></div>'}
-  else{b='<div class="q">To‘g‘ri javob</div><div class="ru">'+esc(s[1])+'<button class="spk" onclick="sayT(R.cur.it[1])">🔊</button></div><div class="tr">🗣 '+esc(trl(s[1]))+'</div><div class="uz">'+esc(s[2])+'</div>';
-    f='<div class="ft"><div class="fm" style="margin-bottom:10px">Qanchalik esladingiz?</div><div class="g3"><button class="gr r" onclick="gr(0)">❌<br>Unutdim</button><button class="gr y" onclick="gr(1)">😬<br>Qiyin</button><button class="gr g" onclick="gr(2)">✅<br>Oson</button></div></div>';setTimeout(function(){sayT(R.cur.it[1])},200)}
-  $("#app").innerHTML='<div class="top"><button class="x" onclick="'+(DAYS[DAY-1]?"home()":"closeApp()")+'">✕</button><div class="pg"><i style="width:'+(R.i/R.q.length*100)+'%"></i></div></div><div class="bd">'+b+'</div>'+f}
-function closeApp(){try{tg?tg.close():location.reload()}catch(e){}}
-function gr(g){var w=R.cur,t=today(),key="s"+w.day,rec=S[key]||{v:[],p:0},v=(rec.v||[]).slice(),c=v[w.idx]||[1,t+1];
-  if(g===0){c=[1,t+1];R.q.push(w)}
-  else if(!R.pr){if(g===2){c=[Math.min(7,c[0]+1),0];c[1]=t+IV[c[0]];R.ok++;R.xp+=5}else c=[c[0],t+IV[c[0]]]}
-  else if(g===2)R.ok++;
-  v[w.idx]=c;var nr={v:v,p:rec.p||0};Store.put(key,nr);S[key]=nr;
-  if(key==="s"+DAY){dayRec.v=v}
-  R.i++;R.show=0;drR()}
-function fR(){G.xp+=R.xp;bumpStreak();saveG();snd(523);setTimeout(function(){snd(784,.3)},150);
-  var ks=learnedAll().slice(0,12);
-  $("#app").innerHTML=confetti()+'<div class="end"><div class="e">🧠</div><h1>Takrorlash tugadi!</h1><div class="stat"><div style="color:#ce82ff">⭐ +'+R.xp+' XP</div><div style="color:var(--g)">✅ '+R.ok+'/'+R.tot+'</div></div><div class="bd"><button class="btn" onclick="'+(DAYS[DAY-1]?"home()":"closeApp()")+'">'+(DAYS[DAY-1]?"Davom etish":"Yopish")+'</button></div></div>'}
-
 /* ============ boshlash ============ */
 function init(){
-  if(!DAYS.length||(!ONLYREV&&!DAYS[DAY-1])){$("#app").innerHTML='<div class="end"><div class="e">🦊</div><h1>Dars topilmadi</h1><p class="note">Botdagi tugma orqali oching.</p></div>';return}
+  if(!DAYS.length||!DAYS[DAY-1]){$("#app").innerHTML='<div class="end"><div class="e">🦊</div><h1>Dars topilmadi</h1><p class="note">Botdagi tugma orqali oching.</p></div>';return}
   $("#app").innerHTML='<div class="end"><div class="e">🦊</div><p class="note">Yuklanmoqda…</p></div>';
   Store.all().then(function(m){S=m;if(m.g){G.xp=m.g.xp||0;G.sk=m.g.sk||0;G.last=m.g.last||0}
     var day=DAYS[DAY-1];
@@ -264,6 +228,7 @@ function init(){
       for(var i=0;i<k;i++){var sz=b+(i<e?1:0),ks=[];for(var j=0;j<sz;j++)ks.push(p+j);p+=sz;UN.push({k:ks,e:E[i%4],n:"Dars "+(i+1)})}
       var r=S["s"+DAY];dayRec={v:(r&&r.v)||[],p:(r&&r.p)||0}}
     if(TESTMODE&&day)return startTest();
-    ONLYREV&&!day?rev():home()})}
+    OLD=dueAll().filter(function(w){return w.day!==DAY}).slice(0,3);
+    home()})}
 init();
 </script></body></html>
