@@ -62,7 +62,7 @@ body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:Nunit
 .miss{text-align:left;border:2px solid var(--bd);border-radius:14px;padding:4px 14px;margin:8px 0}.miss div{padding:10px 0;border-bottom:1px solid var(--bd)}.miss div:last-child{border:0}
 .scene{font-size:64px;text-align:center;background:var(--sel);border-radius:24px;padding:18px 10px;margin:4px 0 16px;line-height:1.2;letter-spacing:6px}
 .tfbox{background:var(--sel);color:var(--bd2);border-radius:14px;padding:12px 16px;font-size:20px;font-weight:800;margin-bottom:16px}.tfbox small{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-bottom:4px}
-.scene.has{padding:0;background:none}.scene.has .em{display:none}.scene img{display:block;width:100%;height:auto;border-radius:24px}
+.scene.has{padding:0;background:none;letter-spacing:0;line-height:0}.scene.has .em{display:none}.scene img,.scene svg{display:block;width:100%;height:auto;border-radius:24px}
 .mini{font-size:34px;margin-bottom:6px;line-height:1.1}
 .unit .sit{margin-top:8px;font-size:15px;font-weight:700;opacity:.95}
 .mt{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mtc{margin:0!important;text-align:center!important;font-size:16px!important;min-height:64px;display:flex;align-items:center;justify-content:center}.op.gone{visibility:hidden}
@@ -191,7 +191,7 @@ function start(u){var q=mk(u);L={u:u,q:q,i:0,d:0,tot:q.length,hp:5,st:"ask",sel:
 function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():fin();var s=it.item,b="",ft="";
   if(it.t==="teach"){var nT=L.q.filter(function(x){return x.t==="teach"}).length,nth=L.q.slice(0,L.i+1).filter(function(x){return x.t==="teach"}).length;
     b='<div class="owl"><div class="o">🦊</div><div class="bub">Yangi gap '+nth+'/'+nT+'</div></div>'+
-      '<div class="scene"><span class="em">'+esc(s[3])+'</span><img alt="" loading="lazy" src="img/'+s[0]+'.webp" onload="this.parentNode.classList.add(\'has\')" onerror="this.remove()"></div>'+
+      '<div class="scene" data-n="'+s[0]+'"><span class="em">'+esc(s[3])+'</span></div>'+
       '<div class="ru">'+esc(s[1])+spk()+'</div><div class="tr">🗣 '+esc(trl(s[1]))+'</div><div class="uz">'+esc(s[2])+'</div>'+
       '<div class="when">📍 <b>Qayerda va qachon aytiladi:</b><br>'+esc(s[4]||DAYS[DAY-1].s)+'</div>';
     ft='<div class="ft"><button class="btn" onclick="nxt(1)">Tushunarli</button></div>'}
@@ -208,7 +208,7 @@ function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():fin();var s=it.it
     var ready=it.t==="build"?L.pick.length>0:L.sel!=null;
     if(L.st==="ask")ft='<div class="ft"><button class="btn" '+(ready?"":"disabled")+' onclick="chk()">Tekshirish</button></div>';
     else ft='<div class="ft '+L.st+'"><div class="fm">'+(L.st==="ok"?"✅ Ofarin!":"❌ To‘g‘ri javob:")+'</div><div style="margin-bottom:12px;font-weight:800;display:flex;gap:10px;align-items:center;justify-content:space-between"><span>'+esc(s[1])+'<br><span style="font-weight:700;opacity:.85">'+esc(s[2])+'</span></span>'+spk()+'</div><button class="btn" onclick="nxt('+(L.st==="ok"?1:0)+')">Davom etish</button></div>'}
-  $("#app").innerHTML='<div class="top"><button class="x" onclick="home()">✕</button><div class="pg"><i style="width:'+(L.d/L.tot*100)+'%"></i></div><span style="color:'+(L.test?"var(--b)":"var(--r)")+';font-weight:900;font-size:18px">'+(L.test?"TEST":"❤️ "+L.hp)+'</span></div><div class="bd">'+b+'</div>'+ft}
+  $("#app").innerHTML='<div class="top"><button class="x" onclick="home()">✕</button><div class="pg"><i style="width:'+(L.d/L.tot*100)+'%"></i></div><span style="color:'+(L.test?"var(--b)":"var(--r)")+';font-weight:900;font-size:18px">'+(L.test?"TEST":"❤️ "+L.hp)+'</span></div><div class="bd">'+b+'</div>'+ft;if(it.t==="teach")fillScene()}
 function ab(j){var it=L.q[L.i];L.pick.push(it.pool.splice(j,1)[0]);draw()}
 function ub(j){if(L.st!=="ask")return;var it=L.q[L.i];it.pool.push(L.pick.splice(j,1)[0]);draw()}
 function mt(j){var it=L.q[L.i];if(L.st!=="ask"||it.gone[j])return;
@@ -240,6 +240,13 @@ function fin(){var g=20+L.xp,u=L.u,t=today();G.xp+=g;bumpStreak();saveG();
   $("#app").innerHTML=confetti()+'<div class="end"><div class="e">🏆</div><h1>'+(last?"Kun darsi tugadi!":"Dars tugadi!")+'</h1><div class="stat"><div style="color:#ce82ff">⭐ +'+g+' XP</div><div style="color:#ff9600">🔥 '+G.sk+'</div><div style="color:var(--g)">🎯 '+(L.err?Math.max(0,100-L.err*12):100)+'%</div></div>'+
     (last?'<div class="note">Endi botga qaytib, shu kunning testini bosing.</div>':'')+'<div class="bd"><button class="btn" onclick="home()">Davom etish</button></div></div>'}
 
+/* ============ rasmlar: sc/<blok>.json (100 tadan), yo'q bo'lsa img/<n>.svg, yo'q bo'lsa emoji ============ */
+var SCB={};
+function scBlock(b){if(!SCB[b])SCB[b]=fetch("sc/"+b+".json").then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(){return {}});return SCB[b]}
+function fillScene(){var el=document.querySelector(".scene[data-n]");if(!el)return;var n=+el.getAttribute("data-n");
+  scBlock(Math.floor((n-13)/100)).then(function(j){if(!el.isConnected)return;var v=j[n];
+    if(v&&/^<svg[\s>]/.test(v)&&!/<script|\son\w+=|href=/i.test(v)){el.innerHTML=v;el.classList.add("has")}
+    else{var im=new Image();im.alt="";im.onload=function(){if(el.isConnected){el.innerHTML="";el.appendChild(im);el.classList.add("has")}};im.src="img/"+n+".svg"}})}
 /* ============ test (kun oxirida; natija botga ketadi) ============ */
 function startTest(){var T5=["mc","tf","fill","build","uzru"],off=Math.floor(Math.random()*5),q=fixAdj(sh(its.map(function(_,k){return mkEx(T5[(k+off)%5],its[k],k)})));
   L={u:-1,test:true,q:q,i:0,d:0,tot:q.length,hp:99,st:"ask",sel:null,pick:[],xp:0,err:0,miss:[]};draw()}
