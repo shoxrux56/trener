@@ -151,11 +151,14 @@ function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
 
 /* ============ mashq turlari (har xil shablonlar) ============ */
 function spk(){return '<button class="spk" onclick="sayCur()" aria-label="Eshitish">🔊</button>'}
-var AU=null;
+var AU=null,PK={};
+function getPk(b){if(!PK[b])PK[b]=fetch("ovoz/p"+b+".bin").then(function(r){if(!r.ok)throw 0;return r.arrayBuffer()}).then(function(buf){var dv=new DataView(buf),c=dv.getUint32(0,true),m={},base=4+c*12;for(var i=0;i<c;i++){var o=4+i*12;m[dv.getUint32(o,true)]=[base+dv.getUint32(o+4,true),dv.getUint32(o+8,true)]}return{buf:buf,m:m,u:{}}}).catch(function(e){delete PK[b];throw e});return PK[b]}
 function sayCur(){var it=L&&L.q[L.i];if(!it||!it.item)return;try{speechSynthesis.cancel()}catch(e){}
 try{if(AU)AU.pause()}catch(e){}
-var done=false,fb=function(){if(done)return;done=true;sayT(it.item[1])};
-try{AU=new Audio("audio/"+it.item[0]+".mp3");AU.onerror=fb;var p=AU.play();if(p&&p.catch)p.catch(fb)}catch(e){fb()}}
+var n=it.item[0],blk=Math.floor((n-13)/100),urls=["audio/"+blk+"/"+n+".mp3","audio/"+n+".mp3"],k=0,done=false;
+var fb=function(){if(done)return;if(k<urls.length)return go();done=true;sayT(it.item[1])};
+var go=function(){var a=new Audio(urls[k++]);AU=a;a.onerror=function(){if(AU===a)fb()};try{var p=a.play();if(p&&p.catch)p.catch(function(){if(AU===a)fb()})}catch(e){fb()}};
+getPk(blk).then(function(p){var e=p.m[n];if(!e)throw 0;if(!p.u[n])p.u[n]=URL.createObjectURL(new Blob([p.buf.slice(e[0],e[0]+e[1])],{type:"audio/mpeg"}));var a=new Audio(p.u[n]);AU=a;a.onerror=function(){if(AU===a)fb()};var pr=a.play();if(pr&&pr.catch)pr.catch(function(){if(AU===a)fb()})}).catch(function(){fb()})}
 function distract(item,field,n){var Ln=item[field].length;
   var c=POOL.filter(function(x){return x[0]!==item[0]&&x[field]!==item[field]&&Math.abs(x[field].length-Ln)<=Math.max(8,Ln*.5)});
   if(c.length<n)c=POOL.filter(function(x){return x[0]!==item[0]});return sh(c).slice(0,n).map(function(x){return x[field]})}
