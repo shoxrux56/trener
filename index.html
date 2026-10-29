@@ -151,7 +151,11 @@ function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
 
 /* ============ mashq turlari (har xil shablonlar) ============ */
 function spk(){return '<button class="spk" onclick="sayCur()" aria-label="Eshitish">🔊</button>'}
-function sayCur(){var it=L&&L.q[L.i];if(it&&it.item)sayT(it.item[1])}
+var AU=null;
+function sayCur(){var it=L&&L.q[L.i];if(!it||!it.item)return;try{speechSynthesis.cancel()}catch(e){}
+try{if(AU)AU.pause()}catch(e){}
+var done=false,fb=function(){if(done)return;done=true;sayT(it.item[1])};
+try{AU=new Audio("audio/"+it.item[0]+".mp3");AU.onerror=fb;var p=AU.play();if(p&&p.catch)p.catch(fb)}catch(e){fb()}}
 function distract(item,field,n){var Ln=item[field].length;
   var c=POOL.filter(function(x){return x[0]!==item[0]&&x[field]!==item[field]&&Math.abs(x[field].length-Ln)<=Math.max(8,Ln*.5)});
   if(c.length<n)c=POOL.filter(function(x){return x[0]!==item[0]});return sh(c).slice(0,n).map(function(x){return x[field]})}
