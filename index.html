@@ -152,7 +152,7 @@ function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
 /* ============ mashq turlari (har xil shablonlar) ============ */
 function spk(){try{var q=L&&L.q[L.i];if(q&&q.item)getPk(Math.floor((q.item[0]-13)/100)).catch(function(){})}catch(e){}return '<button class="spk" onclick="sayCur()" aria-label="Eshitish">🔊</button>'}
 var AU=null,PK={};
-function getPk(b){if(!PK[b])PK[b]=fetch("ovoz/p"+b+".bin").then(function(r){if(!r.ok)throw 0;return r.arrayBuffer()}).then(function(buf){var dv=new DataView(buf),c=dv.getUint32(0,true),m={},base=4+c*12;for(var i=0;i<c;i++){var o=4+i*12;m[dv.getUint32(o,true)]=[base+dv.getUint32(o+4,true),dv.getUint32(o+8,true)]}return{buf:buf,m:m,u:{}}}).catch(function(e){delete PK[b];throw e});return PK[b]}
+function getPk(b){if(!PK[b])PK[b]=fetch("p"+b+".bin").then(function(r){if(!r.ok)return fetch("ovoz/p"+b+".bin").then(function(r2){if(!r2.ok)throw 0;return r2.arrayBuffer()});return r.arrayBuffer()}).then(function(buf){var dv=new DataView(buf),c=dv.getUint32(0,true),m={},base=4+c*12;for(var i=0;i<c;i++){var o=4+i*12;m[dv.getUint32(o,true)]=[base+dv.getUint32(o+4,true),dv.getUint32(o+8,true)]}return{buf:buf,m:m,u:{}}}).catch(function(e){delete PK[b];throw e});return PK[b]}
 function sayCur(){var it=L&&L.q[L.i];if(!it||!it.item)return;try{speechSynthesis.cancel()}catch(e){}
 try{if(AU)AU.pause()}catch(e){}
 var n=it.item[0],blk=Math.floor((n-13)/100),urls=["audio/"+blk+"/"+n+".mp3","audio/"+n+".mp3"],k=0,done=false;
