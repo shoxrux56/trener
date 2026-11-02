@@ -367,7 +367,7 @@ function init(){
       var r=S["s"+DAY];dayRec={v:(r&&r.v)||[],p:(r&&r.p)||0}}
     if(TESTMODE&&day)return startTest();
     if(REVMODE){var dl=dueAll();return dl.length?startReview(dl):memo()}
-    OLD=dueAll().filter(function(w){return w.day!==DAY}).slice(0,UN.length*5);OLDPER=Math.min(5,Math.ceil(OLD.length/UN.length))||1;
+    OLD=dueAll().filter(function(w){return w.day!==DAY}).slice(0,UN.length*8);OLDPER=Math.min(8,Math.ceil(OLD.length/UN.length))||1;
     home()})}
 init();
 </script></body></html>
