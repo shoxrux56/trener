@@ -81,7 +81,7 @@ var MAXREV=12,MAXIV=180,REVN=12;        // bir martada nechta takrorlash; eng uz
 var REVMODE=new URLSearchParams(location.search).get("m")==="review";
 var Q=new URLSearchParams(location.search);
 var DAY=parseInt(Q.get("d"),10);
-var TESTMODE=Q.get("m")==="test",OLD=[];
+var TESTMODE=Q.get("m")==="test",OLD=[],OLDPER=2;
 var LID=Q.get("l")===null||Q.get("l")===""?NaN:Number(Q.get("l")),PASS=0.7;
 var tg=window.Telegram&&Telegram.WebApp,inTG=!!(tg&&tg.platform&&tg.platform!=="unknown");
 try{if(tg){tg.ready();tg.expand();if(tg.colorScheme)document.documentElement.setAttribute("data-theme",tg.colorScheme)}}catch(e){}
@@ -164,14 +164,12 @@ function pickType(o){var a=(o.lap>=2||o.st<=2)?["mc","listen","uzru","tf"]:o.st<
 
 /* ============ bosh sahifa (yo'l xaritasi) ============ */
 function home(){if(!DAYS[DAY-1])return memo();if(L&&L.dirty)saveG();L=null;
-  var day=DAYS[DAY-1];its=day.i;var due=dueAll().length;
+  var day=DAYS[DAY-1];its=day.i;
   var nodes=UN.map(function(u,i){var st=i<dayRec.p?"done":i===dayRec.p?"cur":"lock";return node(i,st,u.e,u.n)});
   var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length,mst,"🏆","Yakuniy test"));
   $("#app").innerHTML='<div class="hd"><span class="y">🔥 '+G.sk+'</span><span class="p">⭐ '+G.xp+' XP</span><span class="h">❤️ 5</span></div>'+
     '<div class="unit"><small>'+day.lv+' · KUN '+DAY+'</small><h2>'+day.e+' '+esc(day.t)+' ('+day.p+'/'+day.k+')</h2><div class="sit">📍 '+esc(day.s)+'</div></div>'+
     '<div class="path" style="padding-bottom:10px">'+nodes.join("")+'</div>'+
-    (due?'<button class="rv hot" onclick="reviewNow()"><b>🔁 Takrorlash: '+due+' ta gap</b><br><small>Esdan chiqmasin — hozir takrorlang</small></button>':'')+
-    '<button class="rv" style="margin-bottom:40px" onclick="memo()"><b>📊 Xotira holati</b><br><small>Nimani unutyapsiz va qayerda qiynalasiz</small></button>'+
     (dayRec.p>UN.length?'<div class="bd"><div class="note" style="text-align:center">🎉 Bugungi dars tayyor! Botga qaytib, shu kunning testini bosing.</div></div>':'')}
 function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
   return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd '+st+'" '+(st==="lock"?"":'onclick="start('+i+')"')+'>'+(st==="cur"?'<span class="s">BOSHLASH</span>':'')+(st==="done"?"⭐":e)+'</button><div class="lb">'+esc(name)+'</div></div>'}
@@ -217,14 +215,14 @@ function mk(u){var q=[];
   if(u<UN.length){var ks=UN[u].k,quick=["mc","tf"],second=["fill","build","uzru","listen"];
     ks.forEach(function(k,j){q.push({t:"teach",k:k,item:its[k]});q.push(mkEx(quick[(j+u)%2],its[k],k))});
     var arr=ks.map(function(k,j){return mkEx(second[(j+u)%4],its[k],k)});arr=fixAdj(sh(arr));
-    OLD.slice(u*2,u*2+2).forEach(function(w){arr.splice(Math.floor(Math.random()*(arr.length+1)),0,exOld(w))});
+    OLD.slice(u*OLDPER,u*OLDPER+OLDPER).forEach(function(w){arr.splice(Math.floor(Math.random()*(arr.length+1)),0,exOld(w))});
     q=q.concat(fixAdj(arr));if(ks.length>=3)q.push(mkMatch(ks))}
   else{var T5=["mc","tf","fill","build","uzru"],off=Math.floor(Math.random()*5);
     var arr2=fixAdj(sh(its.map(function(_,k){return mkEx(T5[(k+off)%5],its[k],k)})));
     var idx=its.map(function(_,i){return i}),h=Math.ceil(idx.length/2);
     q=arr2;if(idx.length>=4){q.splice(Math.ceil(q.length/2),0,mkMatch(sh(idx).slice(0,Math.min(5,h))));q.push(mkMatch(sh(idx).slice(0,Math.min(5,h))))}}
   return q}
-function start(u){var q=mk(u);L={u:u,q:q,i:0,d:0,tot:q.length,hp:5,st:"ask",sel:null,pick:[],xp:0,err:0,wrongK:{}};draw()}
+function start(u){var q=mk(u);L={u:u,q:q,i:0,d:0,tot:q.length,hp:5,st:"ask",sel:null,pick:[],xp:0,err:0,wrongK:{},res:[]};draw()}
 
 function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():L.rev?finRev():fin();var s=it.item,b="",ft="";
   if(it.t==="teach"){var nT=L.q.filter(function(x){return x.t==="teach"&&!x.re}).length,nth=L.q.slice(0,L.i+1).filter(function(x){return x.t==="teach"&&!x.re}).length;
@@ -259,17 +257,18 @@ function mt(j){var it=L.q[L.i];if(L.st!=="ask"||it.gone[j])return;
 function markOld(w,ok){var t=today(),key="s"+w.day,rec=S[key]||{v:[],p:0},v=(rec.v||[]).slice(),o=nr(v[w.idx]),n=grade(o,ok,t);v[w.idx]=pk(n);
   var nrx={v:v,p:rec.p||0};Store.put(key,nrx);S[key]=nrx;
   if(!ok)lagStat(n.gap);
-  if(L&&L.rev)L.res.push({it:w.it,ok:ok,gap:ok?0:n.gap,lap:n.lap,iv:n.iv,old:o})}
+  if(L&&L.res)L.res.push({it:w.it,ok:ok,gap:ok?0:n.gap,lap:n.lap,iv:n.iv,old:o})}
 function rewatch(){var it=L.q[L.i];L.q.splice(L.i+1,0,{t:"teach",item:it.item,k:-1,re:1});nxt(0)}
 function chk(){var it=L.q[L.i],s=it.item,ok;
   if(it.t==="build")ok=norm(L.pick.map(function(p){return p.w}).join(" "))===norm(s[1]);
   else ok=it.o[L.sel]===it.a;
   L.st=ok?"ok":"no";L.dirty=1;tyStat(it.t,ok);
+  var wasOld=!!it.old;
   if(it.old){markOld(it.old,ok);it.old=null}
   else if(!ok&&it.k>=0&&!it.re&&L.wrongK)L.wrongK[it.k]=1;
   if(ok){snd(660);snd(880,.2);hap(true);L.xp+=10}
   else{snd(200,.3);hap(false);L.err++;
-    if(L.test){L.miss.push(it.k)}else{L.hp--;L.q.push(mkEx(it.t,s,it.k));L.tot++;if(L.rev)L.q.splice(L.i+1,0,{t:"teach",item:s,k:-1,re:1})}}
+    if(L.test){L.miss.push(it.k)}else{L.hp--;L.q.push(mkEx(it.t,s,it.k));L.tot++;if(L.rev||wasOld)L.q.splice(L.i+1,0,{t:"teach",item:s,k:-1,re:1})}}
   draw()}
 function nxt(ok){if(ok)L.d++;L.i++;L.st="ask";L.sel=null;L.pick=[];if(L.hp<=0)return dead();draw()}
 function dead(){saveG();$("#app").innerHTML='<div class="end"><div class="e">💔</div><h1 style="color:var(--r)">Jonlar tugadi</h1><p>Xafa bo‘lmang, qaytadan urinib ko‘ring!</p><div class="bd"><button class="btn" onclick="start('+L.u+')">Qayta urinish</button><br><br><button class="op" style="text-align:center" onclick="home()">Bosh sahifa</button></div></div>'}
@@ -280,6 +279,7 @@ function fin(){var g=20+L.xp,u=L.u,t=today();G.xp+=g;bumpStreak();saveG();
   saveDay();snd(523);setTimeout(function(){snd(784,.3)},150);
   var last=u>=UN.length;
   $("#app").innerHTML=confetti()+'<div class="end"><div class="e">🏆</div><h1>'+(last?"Kun darsi tugadi!":"Dars tugadi!")+'</h1><div class="stat"><div style="color:#ce82ff">⭐ +'+g+' XP</div><div style="color:#ff9600">🔥 '+G.sk+'</div><div style="color:var(--g)">🎯 '+(L.err?Math.max(0,100-L.err*12):100)+'%</div></div>'+
+    (L.res&&L.res.length?'<div class="note">🔁 '+L.res.length+' ta eski gap takrorlandi'+(L.res.filter(function(r){return !r.ok}).length?', '+L.res.filter(function(r){return !r.ok}).length+' tasi unutilgan — ertaga yana chiqadi.':' — hammasi esingizda! 👏')+'</div>':'')+
     (last?'<div class="note">Endi botga qaytib, shu kunning testini bosing.</div>':'')+'<div class="bd"><button class="btn" onclick="home()">Davom etish</button></div></div>'}
 
 /* ============ takrorlash sessiyasi ============ */
@@ -367,7 +367,7 @@ function init(){
       var r=S["s"+DAY];dayRec={v:(r&&r.v)||[],p:(r&&r.p)||0}}
     if(TESTMODE&&day)return startTest();
     if(REVMODE){var dl=dueAll();return dl.length?startReview(dl):memo()}
-    OLD=dueAll().filter(function(w){return w.day!==DAY}).slice(0,UN.length*2);
+    OLD=dueAll().filter(function(w){return w.day!==DAY}).slice(0,UN.length*5);OLDPER=Math.min(5,Math.ceil(OLD.length/UN.length))||1;
     home()})}
 init();
 </script></body></html>
