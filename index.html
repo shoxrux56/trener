@@ -332,7 +332,7 @@ function memo(){if(L&&L.dirty)saveG();L=null;var t=today(),A=allRecs(),n=A.lengt
 /* ============ so'zma-so'z tarjima: suz.json {gap_raqami:[har so'z tarjimasi]} ============ */
 var SUZ=null;
 function fillWords(){var el=document.querySelector(".wl[data-n]");if(!el)return;var n=+el.getAttribute("data-n");
-  if(!SUZ)SUZ=fetch("suz.json").then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(){return {}});
+  if(!SUZ)SUZ=fetch("suz.json").then(function(r){if(!r.ok)return fetch("suz_tayyor.json");return r}).then(function(r){if(!r.ok)throw 0;return r.json()}).catch(function(){return {}});
   SUZ.then(function(j){if(!el.isConnected)return;var g=j[n],it=its.filter(function(x){return x[0]===n})[0];if(!g||!it)return;var w=words(it[1]);
     el.innerHTML=w.map(function(x,i){return g[i]?'<div class="w"><b>'+esc(x)+'</b><span>'+esc(g[i])+'</span></div>':""}).join("")})}
 /* ============ rasmlar: sc/<blok>.json (100 tadan), yo'q bo'lsa img/<n>.svg, yo'q bo'lsa emoji ============ */
