@@ -129,13 +129,13 @@ var Store={
 };
 
 /* ============ holat ============ */
-var S={},G={gr:{},xp:0,sk:0,last:0,ty:{},lg:[0,0,0,0,0],wk:{}};
+var S={},G={gr:{},gt:{},xp:0,sk:0,last:0,ty:{},lg:[0,0,0,0,0],wk:{}};
 var its=[],UN=[],dayRec={v:[],p:0};
 var L=null,R=null,POOL=[];
 DAYS.forEach(function(d){d.i.forEach(function(x){POOL.push(x)})});
 function saveDay(){Store.put("s"+DAY,{v:dayRec.v,p:dayRec.p,ver:COURSE});S["s"+DAY]={v:dayRec.v,p:dayRec.p,ver:COURSE}}
-function saveG(){Store.put("g",{gr:G.gr,xp:G.xp,sk:G.sk,last:G.last,ty:G.ty,lg:G.lg,wk:G.wk})}
-function loadG(m){if(m&&m.g){G.gr=m.g.gr||{};G.xp=m.g.xp||0;G.sk=m.g.sk||0;G.last=m.g.last||0;G.ty=m.g.ty||{};G.lg=m.g.lg||[0,0,0,0,0];G.wk=m.g.wk||{}}}
+function saveG(){Store.put("g",{gr:G.gr,gt:G.gt,xp:G.xp,sk:G.sk,last:G.last,ty:G.ty,lg:G.lg,wk:G.wk})}
+function loadG(m){if(m&&m.g){G.gr=m.g.gr||{};G.gt=m.g.gt||{};G.xp=m.g.xp||0;G.sk=m.g.sk||0;G.last=m.g.last||0;G.ty=m.g.ty||{};G.lg=m.g.lg||[0,0,0,0,0];G.wk=m.g.wk||{}}}
 function bumpStreak(){var t=today();if(G.last===t)return;G.sk=(G.last===t-1)?G.sk+1:1;G.last=t}
 /* ============ xotira (SRS) ============
    yozuv: [bosqich, muddat(kun), unutishlar, qulaylik, takror, oxirgi ko'rish, oxirgi xato, oraliq, unutish oralig'i]
@@ -168,12 +168,14 @@ function pickType(o){var a=(o.lap>=2||o.st<=2)?["mc","listen","uzru","tf"]:o.st<
 function home(){if(!DAYS[DAY-1])return memo();if(L&&L.dirty)saveG();L=null;
   var day=DAYS[DAY-1];its=day.i;
   var nodes=UN.map(function(u,i){var st=i<dayRec.p?"done":i===dayRec.p?"cur":"lock";return node(i,st,u.e,u.n)});
-  var gf=gramFor(DAY);if(gf)nodes.push(gNode(UN.length,gf));
-  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length+(gf?1:0),mst,"🏆","Yakuniy test"));
+  var gf=gramFor(DAY);if(gf)nodes=[gNode(0,gf),gTest(1,gf)];else {
+  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length,mst,"🏆","Yakuniy test"));}
   $("#app").innerHTML='<div class="hd"><span class="y">🔥 '+G.sk+'</span><span class="p">⭐ '+G.xp+' XP</span><span class="h">❤️ 5</span></div>'+
     '<div class="unit"><small>'+day.lv+' · KUN '+DAY+'</small><h2>'+day.e+' '+esc(day.t)+(day.k>1?' ('+day.p+'/'+day.k+')':'')+'</h2><div class="sit">📍 '+esc(day.s)+'</div></div>'+
-    '<div class="path" style="padding-bottom:10px">'+nodes.join("")+'</div>'+
+    '<div class="path" style="padding-bottom:10px">'+nodes.join("")+'</div>'+(gf?'<div class="bd"><div class="note" style="text-align:center">😌 Bugun dam kuni: gap yodlash yo\'q. Grammatika, so\'ng test.</div></div>':'')+
     (dayRec.p>UN.length?'<div class="bd"><div class="note" style="text-align:center">🎉 Bugungi dars tayyor! Botga qaytib, shu kunning testini bosing.</div></div>':'')}
+function gTest(i,t){var off=[0,50,-45,40,0,-30][i%6],ok=G.gt[gramIdx(DAY)],open=!!G.gr[gramIdx(DAY)];
+  return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd '+(ok?"done":open?"cur":"lock")+'" '+(open?'onclick="gStart(1)"':"")+'>'+(ok?"⭐":(open?'<span class="s">BOSHLASH</span>':"")+"🏆")+'</button><div class="lb">Grammatika testi</div></div>'}
 function gNode(i,t){var off=[0,50,-45,40,0,-30][i%6],dn=G.gr[gramIdx(DAY)];
   return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd cur" style="background:#1cb0f6;border-bottom-color:#1899d6" onclick="gStart()">'+(dn?"✅":"📘")+'</button><div class="lb">Grammatika</div></div>'}
 function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
@@ -184,8 +186,8 @@ function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
 function gramIdx(d){return d%5===0?d/5-1:-1}
 function gramFor(d){var i=gramIdx(d);return window.GRAM&&i>=0?GRAM[i]||null:null}
 var GR=null;
-function gStart(){var i=gramIdx(DAY),t=GRAM[i];if(!t)return;
-  GR={i:i,t:t,q:t.q.map(function(q){return q.slice()}),n:0,err:0,sel:null,ans:[],st:"rule"};gDraw()}
+function gStart(test){var i=gramIdx(DAY),t=GRAM[i];if(!t)return;
+  GR={i:i,t:t,q:(test?sh(t.q):t.q).map(function(q){return q.slice()}),n:0,err:0,sel:null,ans:[],st:test?"q":"rule",test:!!test};gDraw()}
 function gHead(){return '<div class="top"><button class="x" onclick="home()" aria-label="Yopish">✕</button><div class="pg"><i style="width:'+Math.round(GR.n/GR.q.length*100)+'%"></i></div></div>'}
 function gDraw(){var t=GR.t;
   if(GR.st==="rule"){
@@ -210,10 +212,14 @@ function gChk(){if(GR.done){GR.n++;return gDraw()}
   var q=GR.q[GR.n],ok,right;
   if(q[0]==="mc"){right=q[2];ok=GR.ops[GR.sel]===right;GR.ops.forEach(function(o,j){var b=$("#o"+j);if(o===right){b.style.borderColor="#58cc02";b.style.background="#d7ffb8"}else if(j===GR.sel){b.style.borderColor="#ff4b4b";b.style.background="#ffdfe0"}})}
   else{right=q[2];ok=GR.ans.map(function(i){return GR.bank[i]}).join(" ")===right}
-  GR.done=true;hap(ok);snd(ok?660:200,.2);if(!ok){GR.err++;GR.q.push(q)}
+  GR.done=true;hap(ok);snd(ok?660:200,.2);if(!ok){GR.err++;if(!GR.test)GR.q.push(q)}
   var f=$("#ft");f.className="ft"+(ok?"":" no");
   f.innerHTML='<div style="font-weight:900;margin-bottom:10px;color:'+(ok?"var(--g)":"var(--r)")+'">'+(ok?"✅ To'g'ri!":"❌ To'g'ri javob: "+esc(right))+'</div><button class="btn" id="gb" onclick="gChk()">Davom</button>'}
-function gFin(){var xp=15;if(!G.gr[GR.i]){G.gr[GR.i]=1;G.xp+=xp}else xp=0;bumpStreak();saveG();snd(523);setTimeout(function(){snd(784,.3)},150);
+function gFinTest(){var N=GR.q.length,sc=(N-GR.err)/N,pass=sc>=.8,xp=0;
+  if(pass&&!G.gt[GR.i]){G.gt[GR.i]=1;xp=25;G.xp+=xp}
+  if(pass)bumpStreak();saveG();snd(pass?523:200);
+  $("#app").innerHTML=(pass?confetti():"")+'<div class="end"><div class="e">'+(pass?"🏆":"💪")+'</div><h1>'+(pass?"Test topshirildi!":"Yana urinib ko'ring")+'</h1><div class="stat"><div style="color:#ce82ff">⭐ +'+xp+' XP</div><div style="color:var(--g)">🎯 '+Math.round(sc*100)+'%</div></div><div class="note">'+(pass?"Grammatika yodlandi. Ertaga yangi kun!":"80% kerak. Qoidani qayta o'qib, testni yana bajaring.")+'</div><div class="bd"><button class="btn" onclick="'+(pass?"home()":"gStart()")+'">'+(pass?"Davom etish":"Qoidani qayta ko'rish")+'</button></div></div>'}
+function gFin(){if(GR.test)return gFinTest();var xp=15;if(!G.gr[GR.i]){G.gr[GR.i]=1;G.xp+=xp}else xp=0;bumpStreak();saveG();snd(523);setTimeout(function(){snd(784,.3)},150);
   $("#app").innerHTML=confetti()+'<div class="end"><div class="e">📘</div><h1>Grammatika tayyor!</h1><div class="stat"><div style="color:#ce82ff">⭐ +'+xp+' XP</div><div style="color:var(--g)">🎯 '+Math.max(0,100-GR.err*12)+'%</div></div><div class="note">Mavzu: '+esc(GR.t.t)+'. Keyingi grammatika 5 kundan keyin.</div><div class="bd"><button class="btn" onclick="home()">Davom etish</button></div></div>'}
 
 /* ============ mashq turlari (har xil shablonlar) ============ */
