@@ -168,11 +168,14 @@ function pickType(o){var a=(o.lap>=2||o.st<=2)?["mc","listen","uzru","tf"]:o.st<
 function home(){if(!DAYS[DAY-1])return memo();if(L&&L.dirty)saveG();L=null;
   var day=DAYS[DAY-1];its=day.i;
   var nodes=UN.map(function(u,i){var st=i<dayRec.p?"done":i===dayRec.p?"cur":"lock";return node(i,st,u.e,u.n)});
-  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length,mst,"🏆","Yakuniy test"));
+  var gf=gramFor(DAY);if(gf)nodes.push(gNode(UN.length,gf));
+  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length+(gf?1:0),mst,"🏆","Yakuniy test"));
   $("#app").innerHTML='<div class="hd"><span class="y">🔥 '+G.sk+'</span><span class="p">⭐ '+G.xp+' XP</span><span class="h">❤️ 5</span></div>'+
     '<div class="unit"><small>'+day.lv+' · KUN '+DAY+'</small><h2>'+day.e+' '+esc(day.t)+(day.k>1?' ('+day.p+'/'+day.k+')':'')+'</h2><div class="sit">📍 '+esc(day.s)+'</div></div>'+
-    '<div class="path" style="padding-bottom:10px">'+nodes.join("")+'</div>'+(gramFor(DAY)?'<div class="bd" style="padding-top:0"><button class="op" style="border-color:#1cb0f6;background:#ddf4ff" onclick="gStart()">📘 <b>Grammatika — dam olish</b><br><small style="color:var(--mut)">'+esc(gramFor(DAY).t)+(G.gr[gramIdx(DAY)]?' · ✅ bajarilgan':' · 2 daqiqa, hech qanday stress yo\'q')+'</small></button></div>':'')+
+    '<div class="path" style="padding-bottom:10px">'+nodes.join("")+'</div>'+
     (dayRec.p>UN.length?'<div class="bd"><div class="note" style="text-align:center">🎉 Bugungi dars tayyor! Botga qaytib, shu kunning testini bosing.</div></div>':'')}
+function gNode(i,t){var off=[0,50,-45,40,0,-30][i%6],dn=G.gr[gramIdx(DAY)];
+  return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd cur" style="background:#1cb0f6;border-bottom-color:#1899d6" onclick="gStart()">'+(dn?"✅":"📘")+'</button><div class="lb">Grammatika</div></div>'}
 function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
   return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd '+st+'" '+(st==="lock"?"":'onclick="start('+i+')"')+'>'+(st==="cur"?'<span class="s">BOSHLASH</span>':'')+(st==="done"?"⭐":e)+'</button><div class="lb">'+esc(name)+'</div></div>'}
 
