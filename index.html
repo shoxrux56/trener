@@ -82,7 +82,7 @@ var COURSE=15;                          // kurs tuzilmasi versiyasi (kunlar qayt
 var MAXREV=12,MAXIV=180,REVN=12;        // bir martada nechta takrorlash; eng uzun oraliq (kun)
 var REVMODE=new URLSearchParams(location.search).get("m")==="review";
 var Q=new URLSearchParams(location.search);
-var DAY=parseInt(Q.get("d"),10);
+var DAY=parseInt(Q.get("d"),10),GDAY=Q.get("g")=="1";
 var TESTMODE=Q.get("m")==="test",OLD=[],OLDPER=2;
 var LID=Q.get("l")===null||Q.get("l")===""?NaN:Number(Q.get("l")),PASS=0.7;
 var tg=window.Telegram&&Telegram.WebApp,inTG=!!(tg&&tg.platform&&tg.platform!=="unknown");
@@ -168,11 +168,12 @@ function pickType(o){var a=(o.lap>=2||o.st<=2)?["mc","listen","uzru","tf"]:o.st<
 function home(){if(!DAYS[DAY-1])return memo();if(L&&L.dirty)saveG();L=null;
   var day=DAYS[DAY-1];its=day.i;
   var nodes=UN.map(function(u,i){var st=i<dayRec.p?"done":i===dayRec.p?"cur":"lock";return node(i,st,u.e,u.n)});
-  var gf=gramFor(DAY);if(gf)nodes=[gNode(0,gf),gTest(1,gf)];else {
-  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length,mst,"🏆","Yakuniy test"));}
+  var gf=gramFor(DAY);if(gf&&GDAY)nodes=[gNode(0,gf),gTest(1,gf)];else {
+  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length,mst,"🏆","Yakuniy test"));
+    if(gf&&dayRec.p>UN.length)nodes.push('<div class="note" style="text-align:center;margin:18px 0 0">😌 Dam olish: grammatika (gap yodlash yo\'q)</div>',gNode(UN.length+1,gf),gTest(UN.length+2,gf))}
   $("#app").innerHTML='<div class="hd"><span class="y">🔥 '+G.sk+'</span><span class="p">⭐ '+G.xp+' XP</span><span class="h">❤️ 5</span></div>'+
     '<div class="unit"><small>'+day.lv+' · KUN '+DAY+'</small><h2>'+day.e+' '+esc(day.t)+(day.k>1?' ('+day.p+'/'+day.k+')':'')+'</h2><div class="sit">📍 '+esc(day.s)+'</div></div>'+
-    '<div class="path" style="padding-bottom:10px">'+nodes.join("")+'</div>'+(gf?'<div class="bd"><div class="note" style="text-align:center">😌 Bugun dam kuni: gap yodlash yo\'q. Grammatika, so\'ng test.</div></div>':'')+
+    '<div class="path" style="padding-bottom:10px">'+nodes.join("")+'</div>'+(gf&&GDAY?'<div class="bd"><div class="note" style="text-align:center">😌 Bu grammatika kuni: gap yodlash yo\'q, miya dam oladi. Avval grammatika, so\'ng test.</div></div>':'')+
     (dayRec.p>UN.length?'<div class="bd"><div class="note" style="text-align:center">🎉 Bugungi dars tayyor! Botga qaytib, shu kunning testini bosing.</div></div>':'')}
 function gTest(i,t){var off=[0,50,-45,40,0,-30][i%6],ok=G.gt[gramIdx(DAY)],open=!!G.gr[gramIdx(DAY)];
   return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd '+(ok?"done":open?"cur":"lock")+'" '+(open?'onclick="gStart(1)"':"")+'>'+(ok?"⭐":(open?'<span class="s">BOSHLASH</span>':"")+"🏆")+'</button><div class="lb">Grammatika testi</div></div>'}
