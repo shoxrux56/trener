@@ -466,7 +466,7 @@ function finTest(){var N=its.length,miss=L.miss.filter(function(k,i,a){return a.
 var QT={mc:7,tf:7,fill:7,uzru:7,pic:7,listen:7,dict:12,build:10},QI=null;
 function qTimer(){if(QI){clearInterval(QI);QI=null}
   var it=L&&L.q&&L.q[L.i];if(!it||L.st!=="ask"||!(QT[it.t]||it.t==="match"))return;
-  var lim=it.t==="match"?5*it.cells.length/2:QT[it.t];if(!it._t0)it._t0=Date.now();
+  var lim=it.t==="match"?15:QT[it.t];if(!it._t0)it._t0=Date.now();
   var bd=document.querySelector("#app .bd");if(bd&&!document.getElementById("qbw"))bd.insertAdjacentHTML("afterbegin",'<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px"><div class="rb" id="qbw" style="flex:1;height:16px;margin:0"><i id="qb"></i></div><b id="qn" style="font-size:26px;min-width:34px;text-align:right">'+lim+'</b></div>');
   function upd(){if(!L||L.q[L.i]!==it||L.st!=="ask"){clearInterval(QI);QI=null;return}
     var left=lim-(Date.now()-it._t0)/1000,b=document.getElementById("qb"),w=document.getElementById("qbw");
