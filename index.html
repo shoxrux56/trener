@@ -323,7 +323,7 @@ function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():L.rev?finRev():fi
   else if(it.t==="match"){
     b='<div class="q">Juftliklarni toping</div><div class="mt">'+it.cells.map(function(c,j){var cls=it.gone[j]?"gone":it.bad&&it.bad.indexOf(j)>=0?"no":it.sel===j?"sel":"";
       return '<button class="op mtc '+cls+'" '+(it.gone[j]||L.st!=="ask"?"disabled":'onclick="mt('+j+')"')+'>'+esc(c.t)+'</button>'}).join("")+'</div>';
-    ft=L.st==="ask"?'<div class="ft"><button class="btn" disabled>Juftliklarni tanlang</button></div>':'<div class="ft ok"><div class="fm">'+(it.err?"Juftliklar topildi (xatolar bilan)":"✅ Hammasi to‘g‘ri!")+'</div><button class="btn" onclick="nxt(1)">Davom etish</button></div>'}
+    ft=L.st==="ask"?'<div class="ft"><button class="btn" disabled>Juftliklarni tanlang</button></div>':'<div class="ft ok"><div class="fm">'+(it.to?"⏰ Vaqt tugadi (−1 jon)":it.err?"Juftliklar topildi (xatolar bilan)":"✅ Hammasi to‘g‘ri!")+'</div><button class="btn" onclick="nxt(1)">Davom etish</button></div>'}
   else{
     if(it.t==="build"||it.t==="dict"){
       b=(it.t==="dict"?'<div class="q">Eshiting va yozing</div><div style="text-align:center;margin:6px 0 10px"><button class="spk" style="width:84px;height:84px;font-size:40px;border-radius:24px" onclick="sayCur()" aria-label="Eshitish">🔊</button><div class="note">Eshitganingizni so‘zlardan tuzing (🔊 ni qayta bosish mumkin)</div></div>':'<div class="q">Ruscha tuzing</div><div class="bub" style="margin-bottom:6px;font-size:20px"><span class="mini" style="display:inline;margin-right:6px">'+esc(s[3])+'</span>'+esc(s[2])+'</div>')+'<div class="ans">'+L.pick.map(function(p,j){return '<button class="tl" onclick="ub('+j+')">'+esc(p.w)+'</button>'}).join("")+'</div><div class="bank">'+it.pool.map(function(p,j){return '<button class="tl" onclick="ab('+j+')">'+esc(p.w)+'</button>'}).join("")+'</div>'}
@@ -465,14 +465,15 @@ function finTest(){var N=its.length,miss=L.miss.filter(function(k,i,a){return a.
 /* ============ har mashqqa vaqt: tugasa o'zi o'tkazadi va 1 jon ketadi ============ */
 var QT={mc:7,tf:7,fill:7,uzru:7,pic:7,listen:7,dict:12,build:10},QI=null;
 function qTimer(){if(QI){clearInterval(QI);QI=null}
-  var it=L&&L.q&&L.q[L.i];if(!it||L.st!=="ask"||!QT[it.t])return;
-  var lim=QT[it.t];if(!it._t0)it._t0=Date.now();
+  var it=L&&L.q&&L.q[L.i];if(!it||L.st!=="ask"||!(QT[it.t]||it.t==="match"))return;
+  var lim=it.t==="match"?5*it.cells.length/2:QT[it.t];if(!it._t0)it._t0=Date.now();
   var bd=document.querySelector("#app .bd");if(bd&&!document.getElementById("qbw"))bd.insertAdjacentHTML("afterbegin",'<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px"><div class="rb" id="qbw" style="flex:1;height:16px;margin:0"><i id="qb"></i></div><b id="qn" style="font-size:26px;min-width:34px;text-align:right">'+lim+'</b></div>');
   function upd(){if(!L||L.q[L.i]!==it||L.st!=="ask"){clearInterval(QI);QI=null;return}
     var left=lim-(Date.now()-it._t0)/1000,b=document.getElementById("qb"),w=document.getElementById("qbw");
     if(b)b.style.width=Math.max(left,0)/lim*100+"%";if(w)w.classList.toggle("hot",left<=3);var n=document.getElementById("qn");if(n){n.textContent=Math.max(0,Math.ceil(left));n.style.color=left<=3?"var(--r)":"inherit"}
-    if(left<=0){clearInterval(QI);QI=null;skipQ()}}
+    if(left<=0){clearInterval(QI);QI=null;if(it.t==="match")mTO(it);else skipQ()}}
   upd();QI=setInterval(upd,150)}
+function mTO(it){if(L.st!=="ask")return;it.to=1;it.err=1;it.cells.forEach(function(c,j){it.gone[j]=1});it.left=0;L.hp--;snd(200,.3);try{hap(false)}catch(e){}L.st="ok";if(L.hp<=0)return dead();draw()}
 var _d0=draw;draw=function(){_d0.apply(this,arguments);try{qTimer()}catch(e){}};
 /* ============ boshlash ============ */
 function init(){
