@@ -285,11 +285,13 @@ function fixAdj(a){for(var i=1;i<a.length;i++){if(a[i].t===a[i-1].t){for(var j=i
 function exOld(w){var e=mkEx(pickType(w.r),w.it,-1);e.old=w;return e}
 function mk(u){var q=[];
   if(u<UN.length){var ks=UN[u].k;
-    ks.forEach(function(k){q.push({t:"teach",k:k,item:its[k]})});
+    var M=UN[u].m;
+    if(M!=="play")ks.forEach(function(k){q.push({t:"teach",k:k,item:its[k]})});
+    if(M==="see")return q;
     var g=sh(ks),arr=[];
-    g.slice(0,Math.min(4,g.length)).forEach(function(k,j){arr.push(mkEx("pic",its[k],k))});
+    g.slice(0,Math.min(5,g.length)).forEach(function(k,j){arr.push(mkEx("pic",its[k],k))});
     g.slice(0,2).forEach(function(k){arr.push(mkEx("build",its[k],k))});
-    g.slice(2,3).forEach(function(k){arr.push(mkEx("listen",its[k],k))});
+    g.slice(2,4).forEach(function(k){arr.push(mkEx("listen",its[k],k))});
     arr=fixAdj(sh(arr));
     q=q.concat(fixAdj(arr));if(ks.length>=3)q.push(mkMatch(ks.slice(0,5)));q.push(mkRace(ks))}
   else{var T5=["mc","tf","fill","build","uzru","dict"],off=Math.floor(Math.random()*6);
@@ -454,7 +456,8 @@ function init(){
   Store.all().then(function(m){S=m;loadG(m);
     var day=DAYS[DAY-1];
     if(day){its=day.i;var n=its.length,k=Math.ceil(n/4),b=Math.floor(n/k),e=n%k,p=0,E=["🌱","🌿","🌳","🍀"];
-      for(var i=0;i<k;i++){var sz=b+(i<e?1:0),ks=[];for(var j=0;j<sz;j++)ks.push(p+j);p+=sz;UN.push({k:ks,e:E[i%4],n:"Dars "+(i+1)})}
+      if(n<=8){var all=[];for(var j=0;j<n;j++)all.push(j);UN.push({k:all,e:"👀",n:"Gaplar",m:"see"},{k:all,e:"🎮",n:"O‘yin",m:"play"})}
+      else for(var i=0;i<k;i++){var sz=b+(i<e?1:0),ks=[];for(var j=0;j<sz;j++)ks.push(p+j);p+=sz;UN.push({k:ks,e:E[i%4],n:"Dars "+(i+1)})}
       var r=S["s"+DAY];if(r&&r.ver!==COURSE)r=null;dayRec={v:(r&&r.v)||[],p:(r&&r.p)||0}}
     if(TESTMODE&&day)return startTest();
     if(REVMODE){var dl=dueAll();return dl.length?startReview(dl):memo()}
