@@ -144,6 +144,7 @@ if(RET){
       if(nt&&/botga qaytib/i.test(nt.textContent)){
         var bt=document.querySelector("#app .btn");if(bt){bt.textContent="🗣 Rumiyo bilan gaplashish";nt.textContent="Endi Rumiyo bilan shu gaplarni ayting: u talaffuzingizni tuzatadi va darsni baholaydi.";
           bt.onclick=function(){bt.disabled=true;goRumiyo()}}}}catch(e){}};
+  window.gtRum=function(){location.href=RET+xSep(RET)+"gt="+gramIdx(DAY)+(location.hash||"")};
   window.goRumiyo=function(){var N=its.length,ms=Object.keys(window.WK||{}).map(Number).filter(function(k){return k<N}),p=JSON.stringify({l:LID,s:N-ms.length,n:N,w:ms.slice(0,3).map(function(k){return String(its[k][1]).slice(0,80)})});
     try{ms.forEach(function(k){var cur=dayRec.v[k];dayRec.v[k]=pk(grade(nr(cur||newRec()),false,today()))});saveDay();saveG()}catch(e){}
     location.href=RET+xSep(RET)+"r="+encodeURIComponent(p)+(location.hash||"")};

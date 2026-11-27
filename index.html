@@ -75,7 +75,7 @@ body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:Nunit
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body><div id="app"></div>
 <script src="data.js"></script>
-<script src="gramatika.js?v=14"></script>
+<script src="gramatika.js?v=15"></script>
 <script>
 "use strict";
 /* ============ sozlamalar ============ */
@@ -178,7 +178,7 @@ function home(){try{rStop()}catch(e){}if(!DAYS[DAY-1])return memo();if(L&&L.dirt
     '<div class="path" style="padding-bottom:10px">'+nodes.join("")+'</div>'+(gf&&GDAY?'<div class="bd"><div class="note" style="text-align:center">😌 Bu grammatika kuni: gap yodlash yo\'q, miya dam oladi. Avval grammatika, so\'ng test.</div></div>':'')+
     (dayRec.p>UN.length?'<div class="bd"><div class="note" style="text-align:center">🎉 Bugungi dars tayyor! Botga qaytib, shu kunning testini bosing.</div></div>':'')}
 function gTest(i,t){var off=[0,50,-45,40,0,-30][i%6],ok=G.gt[gramIdx(DAY)],open=!!G.gr[gramIdx(DAY)];
-  return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd '+(ok?"done":open?"cur":"lock")+'" '+(open?'onclick="gStart(1)"':"")+'>'+(ok?"⭐":(open?'<span class="s">BOSHLASH</span>':"")+"🏆")+'</button><div class="lb">Grammatika testi</div></div>'}
+  return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd '+(ok?"done":open?"cur":"lock")+'" '+(open?'onclick="(window.gtRum||function(){gStart(1)})()"':"")+'>'+(ok?"⭐":(open?'<span class="s">BOSHLASH</span>':"")+"🏆")+'</button><div class="lb">Grammatika testi</div></div>'}
 function gNode(i,t){var off=[0,50,-45,40,0,-30][i%6],dn=G.gr[gramIdx(DAY)];
   return '<div style="transform:translateX('+off+'px);text-align:center"><button class="nd cur" style="background:#1cb0f6;border-bottom-color:#1899d6" onclick="gStart()">'+(dn?"✅":"📘")+'</button><div class="lb">Grammatika</div></div>'}
 function node(i,st,e,name){var off=[0,50,-45,40,0,-30][i%6];
@@ -203,22 +203,28 @@ function gDraw(){var t=GR.t;
   var q=GR.q[GR.n];GR.sel=null;GR.ans=[];GR.done=false;
   if(q[0]==="mc"){var ops=sh(q.slice(2).concat([q[2]]).filter(function(v,k,a){return a.indexOf(v)===k}));GR.ops=ops;
     $("#app").innerHTML=gHead()+'<div class="bd"><h3 style="margin:0 0 18px">🎮 To\'g\'ri so\'zni toping</h3><div class="q" style="font-size:22px;margin-bottom:18px">'+esc(q[1])+'</div>'+
-      ops.map(function(o,k){return '<button class="op" id="o'+k+'" onclick="gPick('+k+')">'+esc(o)+'</button>'}).join("")+'</div><div class="ft" id="ft"><button class="btn" id="gb" disabled onclick="gChk()">Tekshirish</button></div>'}
+      ops.map(function(o,k){return '<button class="op" id="o'+k+'" onclick="gPick('+k+')">'+esc(o)+'</button>'}).join("")+'</div><div class="ft" id="ft"><button class="op" onclick="gSkip()">🤷 Bilmayman</button></div>';gTimer(5)}
   else{var w=sh(q[2].split(" ").concat(q[3].split(" ")));GR.bank=w;
-    $("#app").innerHTML=gHead()+'<div class="bd"><h3 style="margin:0 0 18px">Rus tiliga tarjima qiling</h3><div class="q" style="font-size:22px">'+esc(q[1])+'</div><div class="ans" id="ga"></div><div class="bank" id="gk"></div></div><div class="ft" id="ft"><button class="btn" id="gb" disabled onclick="gChk()">Tekshirish</button></div>';gTiles()}}
+    $("#app").innerHTML=gHead()+'<div class="bd"><h3 style="margin:0 0 18px">Rus tiliga tarjima qiling</h3><div class="q" style="font-size:22px">'+esc(q[1])+'</div><div class="ans" id="ga"></div><div class="bank" id="gk"></div></div><div class="ft" id="ft"><button class="op" onclick="gSkip()">🤷 Bilmayman</button></div>';gTiles();gTimer(10)}}
 function gTiles(){var a=$("#ga"),k=$("#gk");if(!a)return;
   a.innerHTML=GR.ans.map(function(i){return '<button class="tl" onclick="gTap('+i+')">'+esc(GR.bank[i])+'</button>'}).join("");
   k.innerHTML=GR.bank.map(function(w,i){return GR.ans.indexOf(i)<0?'<button class="tl" onclick="gTap('+i+')">'+esc(w)+'</button>':'<button class="tl" disabled style="opacity:.25">'+esc(w)+'</button>'}).join("");
-  $("#gb").disabled=!GR.ans.length}
-function gTap(i){if(GR.done)return;var k=GR.ans.indexOf(i);if(k<0)GR.ans.push(i);else GR.ans.splice(k,1);gTiles()}
-function gPick(k){if(GR.done)return;GR.sel=k;GR.ops.forEach(function(_,j){var b=$("#o"+j);b.style.borderColor=j===k?"#1cb0f6":"";b.style.background=j===k?"#ddf4ff":""});$("#gb").disabled=false}
+}
+function gTap(i){if(GR.done)return;var k=GR.ans.indexOf(i);if(k<0)GR.ans.push(i);else GR.ans.splice(k,1);gTiles();if(GR.ans.length===GR.q[GR.n][2].split(" ").length)gChk()}
+function gSkip(){if(GR.done)return;GR.sel=-1;GR.ans=[];gChk()}
+function gTimer(lim){if(GR.ti){clearInterval(GR.ti);GR.ti=null}var bd=document.querySelector("#app .bd");if(!bd)return;
+  bd.insertAdjacentHTML("afterbegin",'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><div class="rb" id="gqw" style="flex:1;height:16px;margin:0"><i id="gqb"></i></div><b id="gqn" style="font-size:26px;min-width:34px;text-align:right">'+lim+'</b></div>');
+  var t0=Date.now(),n=GR.n;GR.ti=setInterval(function(){var b=document.getElementById("gqb");if(!b||GR.n!==n||GR.done){clearInterval(GR.ti);GR.ti=null;return}
+    var left=lim-(Date.now()-t0)/1000;b.style.width=Math.max(left,0)/lim*100+"%";var w=document.getElementById("gqw");if(w)w.classList.toggle("hot",left<=3);var c=document.getElementById("gqn");if(c){c.textContent=Math.max(0,Math.ceil(left));c.style.color=left<=3?"var(--r)":"inherit"}
+    if(left<=0){clearInterval(GR.ti);GR.ti=null;gSkip()}},150)}
+function gPick(k){if(GR.done)return;GR.sel=k;gChk()}
 function gChk(){if(GR.done){GR.n++;return gDraw()}
   var q=GR.q[GR.n],ok,right;
   if(q[0]==="mc"){right=q[2];ok=GR.ops[GR.sel]===right;GR.ops.forEach(function(o,j){var b=$("#o"+j);if(o===right){b.style.borderColor="#58cc02";b.style.background="#d7ffb8"}else if(j===GR.sel){b.style.borderColor="#ff4b4b";b.style.background="#ffdfe0"}})}
   else{right=q[2];ok=GR.ans.map(function(i){return GR.bank[i]}).join(" ")===right}
-  GR.done=true;hap(ok);snd(ok?660:200,.2);if(!ok){GR.err++;if(!GR.test)GR.q.push(q)}
+  GR.done=true;if(GR.ti){clearInterval(GR.ti);GR.ti=null}hap(ok);snd(ok?660:200,.2);if(!ok){GR.err++;if(!GR.test)GR.q.push(q)}
   var f=$("#ft");f.className="ft"+(ok?"":" no");
-  f.innerHTML='<div style="font-weight:900;margin-bottom:10px;color:'+(ok?"var(--g)":"var(--r)")+'">'+(ok?["✅ To'g'ri!","🎉 Barakalla!","👏 Zo'r!","🔥 Ajoyib!"][GR.n%4]:"❌ To'g'ri javob: "+esc(right)+(GR.t.tip?'<div style="font-weight:700;color:var(--mut);margin-top:6px">💡 '+esc(GR.t.tip)+'</div>':""))+'</div><button class="btn" id="gb" onclick="gChk()">Davom</button>'}
+  f.innerHTML='<div style="font-weight:900;margin-bottom:10px;color:'+(ok?"var(--g)":"var(--r)")+'">'+(ok?["✅ To'g'ri!","🎉 Barakalla!","👏 Zo'r!","🔥 Ajoyib!"][GR.n%4]:"❌ To'g'ri javob: "+esc(right)+(GR.t.tip?'<div style="font-weight:700;color:var(--mut);margin-top:6px">💡 '+esc(GR.t.tip)+'</div>':""))+'</div>'+(ok?'':'<button class="btn" id="gb" onclick="gChk()">Davom</button>');if(ok){var n0=GR.n;setTimeout(function(){if(GR&&GR.n===n0&&GR.done)gChk()},700)}}
 function gFinTest(){var N=GR.q.length,sc=(N-GR.err)/N,pass=sc>=.8,xp=0;
   if(pass&&!G.gt[GR.i]){G.gt[GR.i]=1;xp=25;G.xp+=xp}
   if(pass)bumpStreak();saveG();snd(pass?523:200);
@@ -505,4 +511,4 @@ function init(){
 init();
 </script>
 <script src="gram2.js"></script>
-<div style="position:fixed;right:8px;bottom:4px;font-size:11px;opacity:.45;pointer-events:none">v14</div><script src="extra.js?v=14"></script></body></html>
+<div style="position:fixed;right:8px;bottom:4px;font-size:11px;opacity:.45;pointer-events:none">v15</div><script src="extra.js?v=15"></script></body></html>
