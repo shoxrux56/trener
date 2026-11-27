@@ -329,7 +329,7 @@ function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():L.rev?finRev():fi
       b=(it.t==="dict"?'<div class="q">Eshiting va yozing</div><div style="text-align:center;margin:6px 0 10px"><button class="spk" style="width:84px;height:84px;font-size:40px;border-radius:24px" onclick="sayCur()" aria-label="Eshitish">🔊</button><div class="note">Eshitganingizni so‘zlardan tuzing (🔊 ni qayta bosish mumkin)</div></div>':'<div class="q">Ruscha tuzing</div><div class="bub" style="margin-bottom:6px;font-size:20px"><span class="mini" style="display:inline;margin-right:6px">'+esc(s[3])+'</span>'+esc(s[2])+'</div>')+'<div class="ans">'+L.pick.map(function(p,j){return '<button class="tl" onclick="ub('+j+')">'+esc(p.w)+'</button>'}).join("")+'</div><div class="bank">'+it.pool.map(function(p,j){return '<button class="tl" onclick="ab('+j+')">'+esc(p.w)+'</button>'}).join("")+'</div>'}
     else{
       b='<div class="q">'+it.title+'</div>'+(it.t==="speak"?speakHead(it,s):it.head)+(it.t==="pic"?'<div class="pic">':'')+it.o.map(function(o,j){var cls=L.st==="ask"?(L.sel===j?"sel":""):(o===it.a?"ok":(L.sel===j?"no":""));
-        return '<button class="op '+cls+'" '+(L.st==="ask"?'onclick="L.sel='+j+';draw()"':'')+'>'+esc(o)+'</button>'}).join("")+(it.t==="pic"?'</div>':'')}
+        return '<button class="op '+cls+'" '+(L.st==="ask"?'onclick="L.sel='+j+';chk()"':'')+'>'+esc(o)+'</button>'}).join("")+(it.t==="pic"?'</div>':'')}
     var ready=(it.t==="build"||it.t==="dict")?L.pick.length>0:L.sel!=null;
     if(L.st==="ask")ft='<div class="ft"><button class="btn" '+(ready?"":"disabled")+' onclick="chk()">Tekshirish</button></div>';
     else ft='<div class="ft '+L.st+'"><div class="fm">'+(L.st==="ok"?"✅ Ofarin!":(it.self?"😕 Yana eshiting va ayting:":"❌ To‘g‘ri javob:"))+'</div><div style="margin-bottom:12px;font-weight:800;display:flex;gap:10px;align-items:center;justify-content:space-between"><span>'+esc(s[1])+'<br><span style="font-weight:700;opacity:.85">'+esc(s[2])+'</span></span>'+spk()+'</div><button class="btn" onclick="nxt('+(L.st==="ok"?1:0)+')">Davom etish</button>'+(L.st==="no"&&!L.rev&&!L.test?'<button class="op" style="text-align:center;margin:12px 0 0;border-bottom-width:3px" onclick="rewatch()">📖 Gapni qayta ko‘rish</button>':'')+'</div>'}
@@ -349,7 +349,7 @@ function recToggle(){var it=L&&L.q[L.i];if(!it||it.t!=="speak")return;
       if(ch.length)it.recUrl=URL.createObjectURL(new Blob(ch,{type:REC.mimeType||"audio/webm"}));
       if(L&&L.q[L.i]===it)draw()};
     it.recording=1;REC.start();draw()}).catch(function(){it.recErr=1;it.recording=0;if(L&&L.q[L.i]===it)draw()})}catch(e){it.recErr=1;draw()}}
-function ab(j){var it=L.q[L.i];L.pick.push(it.pool.splice(j,1)[0]);draw()}
+function ab(j){var it=L.q[L.i];if(L.st!=="ask")return;L.pick.push(it.pool.splice(j,1)[0]);draw();if(L.pick.length===String(it.item[1]).split(/\s+/).filter(Boolean).length)chk()}
 function ub(j){if(L.st!=="ask")return;var it=L.q[L.i];it.pool.push(L.pick.splice(j,1)[0]);draw()}
 function mt(j){var it=L.q[L.i];if(L.st!=="ask"||it.gone[j])return;
   if(it.sel==null||it.sel===j){it.sel=it.sel===j?null:j;return draw()}
@@ -373,7 +373,8 @@ function chk(){var it=L.q[L.i],s=it.item,ok;
   if(ok){snd(660);snd(880,.2);hap(true);L.xp+=10}
   else{snd(200,.3);hap(false);L.err++;
     if(L.test){L.miss.push(it.k)}else{L.hp--;(window.WK=window.WK||{})[it.k]=1;L.q.push(mkEx(it.t,s,it.k));L.tot++;if(L.rev||wasOld)L.q.splice(L.i+1,0,{t:"teach",item:s,k:-1,re:1})}}
-  draw()}
+  draw();
+  if(ok){var cit=it;setTimeout(function(){if(L&&L.q[L.i]===cit&&L.st==="ok")nxt(1)},750)}}
 function nxt(ok){try{if(REC&&REC.state==="recording")REC.stop()}catch(e){}if(ok)L.d++;L.i++;L.st="ask";L.sel=null;L.pick=[];if(L.hp<=0)return dead();draw()}
 function dead(){saveG();$("#app").innerHTML='<div class="end"><div class="e">💔</div><h1 style="color:var(--r)">Jonlar tugadi</h1><p>Xafa bo‘lmang, qaytadan urinib ko‘ring!</p><div class="bd"><button class="btn" onclick="start('+L.u+')">Qayta urinish</button><br><br><button class="op" style="text-align:center" onclick="home()">Bosh sahifa</button></div></div>'}
 function confetti(){var c="";for(var i=0;i<24;i++)c+='<span class="cf" style="left:'+Math.random()*95+'%;animation-delay:'+Math.random()*.8+'s">'+["🎉","⭐","✨","🟢"][i%4]+'</span>';return c}
