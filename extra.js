@@ -72,10 +72,7 @@ window.home=function(){if((XM==="exam"||XM==="week")&&!xStarted){xStarted=true;r
   oHome.apply(this,arguments);try{xd();var u=$(".unit");if(!u||GDAY)return;
   var n=(X.ls?1:0)+(X.li?1:0)+(X.gp?1:0),all=n===3;
   var row=function(done,emo,txt,fn){return '<button class="xqr'+(done?" ok":"")+'" '+(fn?'onclick="'+fn+'"':"")+'><span class="c">'+emo+'</span><span class="t">'+txt+'</span><span class="c">'+(done?"✅":"⬜")+'</span></button>'};
-  u.insertAdjacentHTML("afterend",'<div class="xq"><div class="xqh"><b>🎯 Bugungi vazifalar</b><span>'+n+'/3</span></div><div class="xqb"><i style="width:'+Math.round(n/3*100)+'%"></i></div>'+
-   row(X.ls,"📚","Darsni tugating","")+row(X.li,"⚡","Tezkor musobaqada yaxshi natija","")+row(X.gp,"📝","Testni topshiring","")+
-   (all&&!X.cl?'<button class="xqg" onclick="xClaim()">🎁 Sovg\'ani oling: +30 XP</button>':all?'<div class="note" style="text-align:center;margin:8px 0 0">🎁 Bugungi sovg\'a olindi!</div>':'')+
-   '<button class="xqy" onclick="xBadges()">🏅 Yutuqlarim ('+BD.filter(function(b){return X.bd[b[0]]}).length+'/'+BD.length+')</button></div>');
+  /* vazifalar bloki olib tashlandi: faqat darslar yo'li */
   checkBd()}catch(e){}};
 window.xClaim=function(){xd();if(X.cl||!(X.ls&&X.li&&X.gp))return;X.cl=1;G.xp+=30;bumpStreak();checkBd();saveG();snd(523);setTimeout(function(){snd(784,.3)},150);
   var h=$("#app");h.insertAdjacentHTML("afterbegin",confetti());toast("🎁 +30 XP! Ertaga yangi vazifalar kutadi");setTimeout(home,1500)};
