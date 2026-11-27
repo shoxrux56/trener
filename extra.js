@@ -143,9 +143,14 @@ if(RET){
     try{var nt=document.querySelector("#app .note");
       if(nt&&/botga qaytib/i.test(nt.textContent)){
         var bt=document.querySelector("#app .btn");if(bt){bt.textContent="🗣 Rumiyo bilan gaplashish";nt.textContent="Endi Rumiyo bilan shu gaplarni ayting: u talaffuzingizni tuzatadi va darsni baholaydi.";
-          bt.onclick=function(){bt.disabled=true;var N=its.length,ms=Object.keys(window.WK||{}).map(Number).filter(function(k){return k<N}),p=JSON.stringify({l:LID,s:N-ms.length,n:N,w:ms.slice(0,3).map(function(k){return String(its[k][1]).slice(0,80)})});
-            try{ms.forEach(function(k){var cur=dayRec.v[k];dayRec.v[k]=pk(grade(nr(cur||newRec()),false,today()))});saveDay();saveG()}catch(e){}
-            location.href=RET+xSep(RET)+"r="+encodeURIComponent(p)+(location.hash||"")}}}}catch(e){}};
+          bt.onclick=function(){bt.disabled=true;goRumiyo()}}}}catch(e){}};
+  window.goRumiyo=function(){var N=its.length,ms=Object.keys(window.WK||{}).map(Number).filter(function(k){return k<N}),p=JSON.stringify({l:LID,s:N-ms.length,n:N,w:ms.slice(0,3).map(function(k){return String(its[k][1]).slice(0,80)})});
+    try{ms.forEach(function(k){var cur=dayRec.v[k];dayRec.v[k]=pk(grade(nr(cur||newRec()),false,today()))});saveDay();saveG()}catch(e){}
+    location.href=RET+xSep(RET)+"r="+encodeURIComponent(p)+(location.hash||"")};
+  var oHomeR=window.home;window.home=function(){oHomeR.apply(this,arguments);
+    try{if(!GDAY&&dayRec.p>UN.length){var ns=document.querySelectorAll("#app .note"),nt=null;for(var i=0;i<ns.length;i++)if(/botga qaytib/i.test(ns[i].textContent))nt=ns[i];
+      if(nt){nt.textContent="🎉 Bugungi dars tayyor! Endi Rumiyo bilan gaplashing: u talaffuzingizni tuzatadi.";
+        var b=document.createElement("button");b.className="btn";b.style.marginTop="14px";b.textContent="🗣 Rumiyo bilan gaplashish";b.onclick=function(){b.disabled=true;goRumiyo()};nt.parentNode.appendChild(b)}}}catch(e){}};
   var oFinT=window.finTest;window.finTest=function(){var r=oFinT.apply(this,arguments);
     try{var p=window.__payload;if(p&&Number.isInteger(LID)){
       var host=document.querySelector("#app .bd")||document.querySelector("#app"),o=JSON.parse(p),pass=o.n>0&&o.s/o.n>=PASS;
