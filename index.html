@@ -463,7 +463,7 @@ function finTest(){var N=its.length,miss=L.miss.filter(function(k,i,a){return a.
   var sb=document.getElementById("sendb");if(sb)sb.onclick=function(){sb.disabled=true;try{tg.sendData(payload)}catch(e){sb.disabled=false}}}
 
 /* ============ har mashqqa vaqt: tugasa o'zi o'tkazadi va 1 jon ketadi ============ */
-var QT={mc:5,tf:5,fill:5,uzru:5,pic:5,listen:7,dict:12,build:10},QI=null;
+var QT={mc:5,tf:5,fill:5,uzru:5,pic:5,listen:5,dict:12,build:10},QI=null;
 function qTimer(){if(QI){clearInterval(QI);QI=null}
   var it=L&&L.q&&L.q[L.i];if(!it||L.st!=="ask"||!(QT[it.t]||it.t==="match"))return;
   var lim=it.t==="match"?15:QT[it.t];if(!it._t0)it._t0=Date.now();
@@ -492,4 +492,4 @@ function init(){
 init();
 </script>
 <script src="gram2.js"></script>
-<div style="position:fixed;right:8px;bottom:4px;font-size:11px;opacity:.45;pointer-events:none">v9</div><script src="extra.js?v=9"></script></body></html>
+<div style="position:fixed;right:8px;bottom:4px;font-size:11px;opacity:.45;pointer-events:none">v10</div><script src="extra.js?v=10"></script></body></html>
