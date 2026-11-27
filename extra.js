@@ -141,7 +141,9 @@ if(RET){
   var oFinR=window.fin;window.fin=function(){oFinR.apply(this,arguments);
     try{var nt=document.querySelector("#app .note");
       if(nt&&/botga qaytib/i.test(nt.textContent)){nt.textContent="Endi shu kunning testini yeching.";
-        var bt=document.querySelector("#app .btn");if(bt){bt.textContent="📝 Testga o‘tish";bt.onclick=function(){startTest()}}}}catch(e){}};
+        var bt=document.querySelector("#app .btn");if(bt){bt.textContent="🗣 Rumiyo bilan gaplashish";bt.onclick=function(){bt.disabled=true;location.href=RET+xSep(RET)+"talk="+DAY+(location.hash||"")};
+          nt.textContent="Endi Rumiyo bilan shu gaplarni ayting: u talaffuzingizni tuzatadi. Keyin test.";
+          var b2=document.createElement("button");b2.className="op";b2.style.cssText="text-align:center;margin-top:12px";b2.textContent="📝 Darrov testga o‘tish";b2.onclick=function(){startTest()};bt.parentNode.appendChild(b2)}}}catch(e){}};
   var oFinT=window.finTest;window.finTest=function(){var r=oFinT.apply(this,arguments);
     try{var p=window.__payload;if(p&&Number.isInteger(LID)){
       var host=document.querySelector("#app .bd")||document.querySelector("#app"),o=JSON.parse(p),pass=o.n>0&&o.s/o.n>=PASS;
