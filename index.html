@@ -331,7 +331,7 @@ function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():L.rev?finRev():fi
       b='<div class="q">'+it.title+'</div>'+(it.t==="speak"?speakHead(it,s):it.head)+(it.t==="pic"?'<div class="pic">':'')+it.o.map(function(o,j){var cls=L.st==="ask"?(L.sel===j?"sel":""):(o===it.a?"ok":(L.sel===j?"no":""));
         return '<button class="op '+cls+'" '+(L.st==="ask"?'onclick="L.sel='+j+';chk()"':'')+'>'+esc(o)+'</button>'}).join("")+(it.t==="pic"?'</div>':'')}
     var ready=(it.t==="build"||it.t==="dict")?L.pick.length>0:L.sel!=null;
-    if(L.st==="ask")ft='<div class="ft"><button class="btn" '+(ready?"":"disabled")+' onclick="chk()">Tekshirish</button></div>';
+    if(L.st==="ask")ft=it.t==="speak"?'<div class="ft"><button class="btn" '+(ready?"":"disabled")+' onclick="chk()">Tekshirish</button></div>':'<div class="ft"><button class="op" style="text-align:center;margin:0;color:var(--mut,#777)" onclick="skipQ()">🤷 Bilmayman</button></div>';
     else ft='<div class="ft '+L.st+'"><div class="fm">'+(L.st==="ok"?"✅ Ofarin!":(it.self?"😕 Yana eshiting va ayting:":"❌ To‘g‘ri javob:"))+'</div><div style="margin-bottom:12px;font-weight:800;display:flex;gap:10px;align-items:center;justify-content:space-between"><span>'+esc(s[1])+'<br><span style="font-weight:700;opacity:.85">'+esc(s[2])+'</span></span>'+spk()+'</div><button class="btn" onclick="nxt('+(L.st==="ok"?1:0)+')">Davom etish</button>'+(L.st==="no"&&!L.rev&&!L.test?'<button class="op" style="text-align:center;margin:12px 0 0;border-bottom-width:3px" onclick="rewatch()">📖 Gapni qayta ko‘rish</button>':'')+'</div>'}
   $("#app").innerHTML='<div class="top"><button class="x" onclick="home()">✕</button><div class="pg"><i style="width:'+(L.d/L.tot*100)+'%"></i></div><span style="color:'+(L.test||L.rev?"var(--b)":"var(--r)")+';font-weight:900;font-size:18px">'+(L.test?"TEST":L.rev?"🔁":"❤️ "+L.hp)+'</span></div><div class="bd">'+b+'</div>'+ft;if(it.t==="teach"){fillScene();fillWords()}if(it.auto&&!it.played&&L.st==="ask"){it.played=1;setTimeout(sayCur,300)}}
 /* ============ gapirish mashqi: o'zingizni yozib eshitish (shadowing). Server va limit kerak emas ============ */
@@ -375,6 +375,7 @@ function chk(){var it=L.q[L.i],s=it.item,ok;
     if(L.test){L.miss.push(it.k)}else{L.hp--;(window.WK=window.WK||{})[it.k]=1;L.q.push(mkEx(it.t,s,it.k));L.tot++;if(L.rev||wasOld)L.q.splice(L.i+1,0,{t:"teach",item:s,k:-1,re:1})}}
   draw();
   if(ok){var cit=it;setTimeout(function(){if(L&&L.q[L.i]===cit&&L.st==="ok")nxt(1)},750)}}
+function skipQ(){var it=L.q[L.i];if(!it||L.st!=="ask")return;if(it.t!=="build"&&it.t!=="dict")L.sel=-1;else L.pick=[];chk()}
 function nxt(ok){try{if(REC&&REC.state==="recording")REC.stop()}catch(e){}if(ok)L.d++;L.i++;L.st="ask";L.sel=null;L.pick=[];if(L.hp<=0)return dead();draw()}
 function dead(){saveG();$("#app").innerHTML='<div class="end"><div class="e">💔</div><h1 style="color:var(--r)">Jonlar tugadi</h1><p>Xafa bo‘lmang, qaytadan urinib ko‘ring!</p><div class="bd"><button class="btn" onclick="start('+L.u+')">Qayta urinish</button><br><br><button class="op" style="text-align:center" onclick="home()">Bosh sahifa</button></div></div>'}
 function confetti(){var c="";for(var i=0;i<24;i++)c+='<span class="cf" style="left:'+Math.random()*95+'%;animation-delay:'+Math.random()*.8+'s">'+["🎉","⭐","✨","🟢"][i%4]+'</span>';return c}
@@ -478,4 +479,4 @@ function init(){
 init();
 </script>
 <script src="gram2.js"></script>
-<script src="extra.js"></script></body></html>
+<script src="extra.js?v=20261128"></script></body></html>
