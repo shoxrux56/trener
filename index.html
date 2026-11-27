@@ -466,7 +466,7 @@ function finTest(){var N=its.length,miss=L.miss.filter(function(k,i,a){return a.
 var QT={mc:5,tf:5,fill:5,uzru:5,pic:5,listen:5,dict:12,build:10},QI=null;
 function qTimer(){if(QI){clearInterval(QI);QI=null}
   var it=L&&L.q&&L.q[L.i];if(!it||L.st!=="ask"||!(QT[it.t]||it.t==="match"))return;
-  var lim=it.t==="match"?15:QT[it.t];if(!it._t0)it._t0=Date.now();
+  var lim=it.t==="match"?25:QT[it.t];if(!it._t0)it._t0=Date.now();
   var bd=document.querySelector("#app .bd");if(bd&&!document.getElementById("qbw"))bd.insertAdjacentHTML("afterbegin",'<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px"><div class="rb" id="qbw" style="flex:1;height:16px;margin:0"><i id="qb"></i></div><b id="qn" style="font-size:26px;min-width:34px;text-align:right">'+lim+'</b></div>');
   function upd(){if(!L||L.q[L.i]!==it||L.st!=="ask"){clearInterval(QI);QI=null;return}
     var left=lim-(Date.now()-it._t0)/1000,b=document.getElementById("qb"),w=document.getElementById("qbw");
@@ -492,4 +492,4 @@ function init(){
 init();
 </script>
 <script src="gram2.js"></script>
-<div style="position:fixed;right:8px;bottom:4px;font-size:11px;opacity:.45;pointer-events:none">v10</div><script src="extra.js?v=10"></script></body></html>
+<div style="position:fixed;right:8px;bottom:4px;font-size:11px;opacity:.45;pointer-events:none">v11</div><script src="extra.js?v=11"></script></body></html>
