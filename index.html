@@ -171,7 +171,7 @@ function home(){try{rStop()}catch(e){}if(!DAYS[DAY-1])return memo();if(L&&L.dirt
   var day=DAYS[DAY-1];its=day.i;
   var nodes=UN.map(function(u,i){var st=i<dayRec.p?"done":i===dayRec.p?"cur":"lock";return node(i,st,u.e,u.n)});
   var gf=gramFor(DAY);if(gf&&GDAY)nodes=[gNode(0,gf),gTest(1,gf)];else {
-  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";nodes.push(node(UN.length,mst,"🏆","Yakuniy test"));
+  var mst=dayRec.p>UN.length?"done":dayRec.p===UN.length?"cur":"lock";if(!/^https:\/\//.test(new URLSearchParams(location.search).get("ret")||""))nodes.push(node(UN.length,mst,"🏆","Yakuniy test"));
     if(gf&&dayRec.p>UN.length)nodes.push('<div class="note" style="text-align:center;margin:18px 0 0">😌 Dam olish: grammatika (gap yodlash yo\'q)</div>',gNode(UN.length+1,gf),gTest(UN.length+2,gf))}
   $("#app").innerHTML='<div class="hd"><span class="y">🔥 '+G.sk+'</span><span class="p">⭐ '+G.xp+' XP</span><span class="h">❤️ 5</span></div>'+
     '<div class="unit"><small>'+day.lv+'</small><h2>'+day.e+' '+esc(day.t)+(day.k>1?' ('+day.p+'/'+day.k+')':'')+'</h2><div class="sit">📍 '+esc(day.s)+'</div></div>'+
@@ -276,7 +276,7 @@ function rStart(){var it=L.q[L.i];if(it.run)return;it.run=1;rStop();rDraw();
   RT=setInterval(function(){if(!L||L.q[L.i]!==it){return rStop()}it.left--;var a=$("#rl"),b=$("#rbar");if(a)a.textContent="⏱ "+Math.max(it.left,0)+"s";if(b)b.style.width=Math.max(it.left,0)/45*100+"%";if(it.left<=0)rEnd()},1000)}
 function rPick(j){var it=L.q[L.i];if(!it||it.lock||it.left<=0)return;var q=it.qs[it.ri],ok=q.o[j]===q.a;it.lock=1;
   var bs=document.querySelectorAll(".op");if(bs[j])bs[j].classList.add(ok?"ok":"no");
-  if(ok){it.sc++;snd(660)}else{snd(200,.2);bs.forEach&&bs.forEach(function(b,x){if(q.o[x]===q.a)b.classList.add("ok")});if(L.wrongK&&q.k>=0)L.wrongK[q.k]=1}
+  if(ok){it.sc++;snd(660)}else{snd(200,.2);bs.forEach&&bs.forEach(function(b,x){if(q.o[x]===q.a)b.classList.add("ok")});if(q.k>=0)(window.WK=window.WK||{})[q.k]=1}
   setTimeout(function(){it.lock=0;if(L.q[L.i]!==it||it.done)return;it.ri++;if(it.ri>=it.qs.length)rEnd();else rDraw()},ok?280:700)}
 function rEnd(){var it=L.q[L.i];if(!it||it.done)return;it.done=1;rStop();L.xp+=it.sc*2;L.d++;L.st="ok";hap(true);
   var left=45-Math.max(it.left,0);
@@ -359,7 +359,7 @@ function chk(){var it=L.q[L.i],s=it.item,ok;
   else if(!ok&&it.k>=0&&!it.re&&L.wrongK)L.wrongK[it.k]=1;
   if(ok){snd(660);snd(880,.2);hap(true);L.xp+=10}
   else{snd(200,.3);hap(false);L.err++;
-    if(L.test){L.miss.push(it.k)}else{L.hp--;L.q.push(mkEx(it.t,s,it.k));L.tot++;if(L.rev||wasOld)L.q.splice(L.i+1,0,{t:"teach",item:s,k:-1,re:1})}}
+    if(L.test){L.miss.push(it.k)}else{L.hp--;(window.WK=window.WK||{})[it.k]=1;L.q.push(mkEx(it.t,s,it.k));L.tot++;if(L.rev||wasOld)L.q.splice(L.i+1,0,{t:"teach",item:s,k:-1,re:1})}}
   draw()}
 function nxt(ok){try{if(REC&&REC.state==="recording")REC.stop()}catch(e){}if(ok)L.d++;L.i++;L.st="ask";L.sel=null;L.pick=[];if(L.hp<=0)return dead();draw()}
 function dead(){saveG();$("#app").innerHTML='<div class="end"><div class="e">💔</div><h1 style="color:var(--r)">Jonlar tugadi</h1><p>Xafa bo‘lmang, qaytadan urinib ko‘ring!</p><div class="bd"><button class="btn" onclick="start('+L.u+')">Qayta urinish</button><br><br><button class="op" style="text-align:center" onclick="home()">Bosh sahifa</button></div></div>'}
