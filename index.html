@@ -291,7 +291,6 @@ function mk(u){var q=[];
     g.slice(0,2).forEach(function(k){arr.push(mkEx("build",its[k],k))});
     g.slice(2,3).forEach(function(k){arr.push(mkEx("listen",its[k],k))});
     arr=fixAdj(sh(arr));
-    OLD.slice(u*OLDPER,u*OLDPER+Math.min(OLDPER,2)).forEach(function(w){arr.splice(Math.floor(Math.random()*(arr.length+1)),0,exOld(w))});
     q=q.concat(fixAdj(arr));if(ks.length>=3)q.push(mkMatch(ks.slice(0,5)));q.push(mkRace(ks))}
   else{var T5=["mc","tf","fill","build","uzru","dict"],off=Math.floor(Math.random()*6);
     var arr2=fixAdj(sh(its.map(function(_,k){return mkEx(T5[(k+off)%6],its[k],k)})));

@@ -71,9 +71,9 @@ var oHome=window.home;
 window.home=function(){if((XM==="exam"||XM==="week")&&!xStarted){xStarted=true;return xTestMode()}
   oHome.apply(this,arguments);try{xd();var u=$(".unit");if(!u||GDAY)return;
   var n=(X.ls?1:0)+(X.li?1:0)+(X.gp?1:0),all=n===3;
-  var row=function(done,emo,txt,fn){return '<button class="xqr'+(done?" ok":"")+'" '+(fn?'onclick="'+fn+'"':"")+'><span class="c">'+emo+'</span><span class="t">'+txt+'</span><span class="c">'+(done?"✅":"▶")+'</span></button>'};
+  var row=function(done,emo,txt,fn){return '<button class="xqr'+(done?" ok":"")+'" '+(fn?'onclick="'+fn+'"':"")+'><span class="c">'+emo+'</span><span class="t">'+txt+'</span><span class="c">'+(done?"✅":"⬜")+'</span></button>'};
   u.insertAdjacentHTML("afterend",'<div class="xq"><div class="xqh"><b>🎯 Bugungi vazifalar</b><span>'+n+'/3</span></div><div class="xqb"><i style="width:'+Math.round(n/3*100)+'%"></i></div>'+
-   row(X.ls,"📚","Darsni tugating",X.ls?"":"")+row(X.li,"🎧","Eshit va top (o'yin)","xListen()")+row(X.gp,"🧩","Gap tuz (o'yin)","xBuild()")+
+   row(X.ls,"📚","Darsni tugating","")+row(X.li,"⚡","Tezkor musobaqada yaxshi natija","")+row(X.gp,"📝","Testni topshiring","")+
    (all&&!X.cl?'<button class="xqg" onclick="xClaim()">🎁 Sovg\'ani oling: +30 XP</button>':all?'<div class="note" style="text-align:center;margin:8px 0 0">🎁 Bugungi sovg\'a olindi!</div>':'')+
    '<button class="xqy" onclick="xBadges()">🏅 Yutuqlarim ('+BD.filter(function(b){return X.bd[b[0]]}).length+'/'+BD.length+')</button></div>');
   checkBd()}catch(e){}};
@@ -82,6 +82,10 @@ window.xClaim=function(){xd();if(X.cl||!(X.ls&&X.li&&X.gp))return;X.cl=1;G.xp+=3
 
 /* darsni tugatish / takrorlash -> vazifa belgilash */
 var oFin=window.fin;window.fin=function(){oFin.apply(this,arguments);try{xd();X.ls=1;checkBd();saveG()}catch(e){}};
+/* alohida o'yinlar yo'q: vazifalar darsning o'zidan belgilanadi */
+var oRE=window.rEnd;if(oRE)window.rEnd=function(){var it=null;try{it=L.q[L.i]}catch(e){}var was=it&&it.done;oRE.apply(this,arguments);
+  try{if(it&&!was&&it.sc>=Math.ceil(it.qs.length*.6)){xd();X.li=1;checkBd();saveG()}}catch(e){}};
+var oFT=window.finTest;window.finTest=function(){var r=oFT.apply(this,arguments);try{xd();X.gp=1;checkBd();saveG()}catch(e){}return r};
 var oFinRev=window.finRev;if(oFinRev)window.finRev=function(){oFinRev.apply(this,arguments);try{xd();X.rv=1;checkBd();saveG()}catch(e){}};
 
 
