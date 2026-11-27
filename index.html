@@ -462,6 +462,18 @@ function finTest(){var N=its.length,miss=L.miss.filter(function(k,i,a){return a.
     (can?'<button class="btn" id="sendb">Natijani botga yuborish</button>':'<div class="note">Bu test Telegram bot tugmasi orqali ochilishi kerak, aks holda natija botga yetmaydi.</div>')+'</div>';
   var sb=document.getElementById("sendb");if(sb)sb.onclick=function(){sb.disabled=true;try{tg.sendData(payload)}catch(e){sb.disabled=false}}}
 
+/* ============ har mashqqa vaqt: tugasa o'zi o'tkazadi va 1 jon ketadi ============ */
+var QT={mc:12,tf:10,fill:12,uzru:14,pic:10,listen:15,dict:35,build:30},QI=null;
+function qTimer(){if(QI){clearInterval(QI);QI=null}
+  var it=L&&L.q&&L.q[L.i];if(!it||L.st!=="ask"||!QT[it.t])return;
+  var lim=QT[it.t];if(!it._t0)it._t0=Date.now();
+  var bd=document.querySelector("#app .bd");if(bd&&!document.getElementById("qbw"))bd.insertAdjacentHTML("afterbegin",'<div class="rb" id="qbw"><i id="qb"></i></div>');
+  function upd(){if(!L||L.q[L.i]!==it||L.st!=="ask"){clearInterval(QI);QI=null;return}
+    var left=lim-(Date.now()-it._t0)/1000,b=document.getElementById("qb"),w=document.getElementById("qbw");
+    if(b)b.style.width=Math.max(left,0)/lim*100+"%";if(w)w.classList.toggle("hot",left<=4);
+    if(left<=0){clearInterval(QI);QI=null;skipQ()}}
+  upd();QI=setInterval(upd,150)}
+var _d0=draw;draw=function(){_d0.apply(this,arguments);try{qTimer()}catch(e){}};
 /* ============ boshlash ============ */
 function init(){
   if(!DAYS.length||(!REVMODE&&!DAYS[DAY-1])){$("#app").innerHTML='<div class="end"><div class="e">🦊</div><h1>Dars topilmadi</h1><p class="note">Botdagi tugma orqali oching.</p></div>';return}
