@@ -67,7 +67,7 @@ body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:Nunit
 .unit .sit{margin-top:8px;font-size:15px;font-weight:700;opacity:.95}
 .mt{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mtc{margin:0!important;text-align:center!important;font-size:16px!important;min-height:64px;display:flex;align-items:center;justify-content:center}.op.gone{visibility:hidden}
 .pic{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pic .op{margin:0;text-align:center;font-size:46px;padding:14px 0}
-.rc{display:flex;justify-content:space-between;font-weight:900;margin:4px 0 8px}.rb{height:10px;background:var(--bd);border-radius:6px;overflow:hidden;margin-bottom:14px}.rb i{display:block;height:100%;width:100%;background:var(--g);transition:width .25s linear}
+.rc{display:flex;justify-content:space-between;font-weight:900;margin:4px 0 8px}.rb{height:10px;background:var(--bd);border-radius:6px;overflow:hidden;margin-bottom:14px}.rb i{display:block;height:100%;width:100%;background:var(--g);transition:width .1s linear}.rb.hot i{background:var(--r)}.rb{height:14px}.shk{animation:shk .35s}@keyframes shk{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 .note{color:var(--mut);font-size:15px;margin:10px 0}
 .bar{height:10px;border-radius:6px;background:var(--bd);overflow:hidden;margin-top:4px}.bar i{display:block;height:100%;border-radius:6px}
 .sec{font-size:18px;font-weight:900;margin:22px 0 6px}.sub{color:var(--mut);font-size:14px;margin:0 0 8px}
@@ -264,23 +264,34 @@ function mkEx(t,it,k){var e={t:t,item:it,k:k};
   return e}
 function mkMatch(ks){var cells=[];ks.forEach(function(k){cells.push({id:its[k][0],side:0,t:its[k][1]},{id:its[k][0],side:1,t:its[k][2]})});
   return {t:"match",item:null,k:-1,cells:sh(cells),gone:{},sel:null,left:ks.length,err:0}}
-function mkRace(ks){var qs=[];sh(ks.concat(ks)).forEach(function(k,j){var it=its[k],ru=j%2===0,f=ru?2:1,g=ru?1:2;
-  qs.push({k:k,p:it[g],o:sh([it[f]].concat(distract(it,f,3))),a:it[f]})});
-  return {t:"race",item:null,k:-1,qs:qs.slice(0,12),ri:0,sc:0,left:45,run:0,lock:0}}
+function mkRace(ks){var qs=[],ord=[];for(var r=0;r<3;r++)ord=ord.concat(sh(ks));
+  ord.slice(0,15).forEach(function(k,j){var it=its[k],ru=j%2===0,f=ru?2:1,g=ru?1:2;
+    qs.push({k:k,p:it[g],o:sh([it[f]].concat(distract(it,f,3))),a:it[f]})});
+  return {t:"race",item:null,k:-1,qs:qs,ri:0,sc:0,lives:3,combo:0,best:0,tl:8,tm:8,run:0,lock:0,done:0}}
 var RT=null;function rStop(){if(RT){clearInterval(RT);RT=null}}
-function rDraw(){var it=L.q[L.i];if(!it||it.t!=="race")return;var q=it.qs[it.ri];
-  $("#app").innerHTML='<div class="top"><button class="x" onclick="rStop();home()">✕</button><div class="pg"><i style="width:'+(L.d/L.tot*100)+'%"></i></div><span style="color:var(--r);font-weight:900;font-size:18px">⚡</span></div><div class="bd">'+
-   '<div class="q">⚡ Tezkor musobaqa</div><div class="rc"><span id="rl">⏱ '+it.left+'s</span><span id="rs">✅ '+it.sc+'</span></div><div class="rb"><i id="rbar" style="width:'+(it.left/45*100)+'%"></i></div>'+
-   '<div class="ru" style="margin-bottom:16px;font-size:24px">'+esc(q.p)+'</div>'+q.o.map(function(o,j){return '<button class="op" onclick="rPick('+j+')">'+esc(o)+'</button>'}).join("")+'</div>'}
+function rLimit(it){return Math.max(3,8-it.sc*.35)}
+function rHud(it){return '<span id="rl">'+"❤️".repeat(it.lives)+"🖤".repeat(3-it.lives)+'</span><span id="rc">'+(it.combo>=2?'🔥 x'+it.combo:'')+'</span><span id="rs">⭐ '+it.sc+'</span>'}
+function rDraw(){var it=L.q[L.i];if(!it||it.t!=="race")return;var q=it.qs[it.ri];it.tm=it.tl=rLimit(it);it.lock=0;
+  $("#app").innerHTML='<div class="top"><button class="x" onclick="rStop();home()">✕</button><div class="pg"><i style="width:'+(L.d/L.tot*100)+'%"></i></div><span style="font-size:18px">⚡</span></div><div class="bd">'+
+   '<div class="rc" id="rh">'+rHud(it)+'</div><div class="rb" id="rbw"><i id="rbar" style="width:100%"></i></div>'+
+   '<div class="ru" style="margin:6px 0 18px;font-size:26px">'+esc(q.p)+'</div>'+q.o.map(function(o,j){return '<button class="op" onclick="rPick('+j+')">'+esc(o)+'</button>'}).join("")+'</div>'}
 function rStart(){var it=L.q[L.i];if(it.run)return;it.run=1;rStop();rDraw();
-  RT=setInterval(function(){if(!L||L.q[L.i]!==it){return rStop()}it.left--;var a=$("#rl"),b=$("#rbar");if(a)a.textContent="⏱ "+Math.max(it.left,0)+"s";if(b)b.style.width=Math.max(it.left,0)/45*100+"%";if(it.left<=0)rEnd()},1000)}
-function rPick(j){var it=L.q[L.i];if(!it||it.lock||it.left<=0)return;var q=it.qs[it.ri],ok=q.o[j]===q.a;it.lock=1;
-  var bs=document.querySelectorAll(".op");if(bs[j])bs[j].classList.add(ok?"ok":"no");
-  if(ok){it.sc++;snd(660)}else{snd(200,.2);bs.forEach&&bs.forEach(function(b,x){if(q.o[x]===q.a)b.classList.add("ok")});if(q.k>=0)(window.WK=window.WK||{})[q.k]=1}
-  setTimeout(function(){it.lock=0;if(L.q[L.i]!==it||it.done)return;it.ri++;if(it.ri>=it.qs.length)rEnd();else rDraw()},ok?280:700)}
-function rEnd(){var it=L.q[L.i];if(!it||it.done)return;it.done=1;rStop();L.xp+=it.sc*2;L.d++;L.st="ok";hap(true);
-  var left=45-Math.max(it.left,0);
-  $("#app").innerHTML='<div class="top"><button class="x" onclick="home()">✕</button><div class="pg"><i style="width:'+(L.d/L.tot*100)+'%"></i></div><span></span></div><div class="bd"><div class="end" style="min-height:0"><div class="e">'+(it.sc>=it.qs.length*.8?"🏆":"⚡")+'</div><h1>'+it.sc+' / '+it.qs.length+'</h1><p>'+left+' soniyada · +'+it.sc*2+' XP</p></div></div><div class="ft ok"><button class="btn" onclick="L.i++;L.st=\'ask\';draw()">Davom etish</button></div>'}
+  RT=setInterval(function(){if(!L||L.q[L.i]!==it||it.done)return rStop();if(it.lock)return;
+    var c0=Math.ceil(it.tl);it.tl-=.1;var b=$("#rbar"),w=$("#rbw");if(b)b.style.width=Math.max(it.tl,0)/it.tm*100+"%";
+    if(it.tl<=3){if(w)w.classList.add("hot");if(Math.ceil(it.tl)!==c0)snd(900,.04)}
+    if(it.tl<=0)rWrong(it,-1)},100)}
+function rNext(it){setTimeout(function(){if(L.q[L.i]!==it||it.done)return;it.ri++;if(it.lives<=0||it.ri>=it.qs.length)rEnd();else rDraw()},it.lastOk?220:850)}
+function rPick(j){var it=L.q[L.i];if(!it||it.lock||it.done)return;var q=it.qs[it.ri];
+  if(q.o[j]===q.a){it.lock=1;it.lastOk=1;it.sc++;it.combo++;if(it.combo>it.best)it.best=it.combo;snd(600+Math.min(it.combo,8)*40);
+    var bs=document.querySelectorAll(".op");if(bs[j])bs[j].classList.add("ok");var h=$("#rh");if(h)h.innerHTML=rHud(it);rNext(it)}
+  else rWrong(it,j)}
+function rWrong(it,j){if(it.lock)return;it.lock=1;it.lastOk=0;it.lives--;it.combo=0;var q=it.qs[it.ri];snd(180,.25);try{hap(false)}catch(e){}
+  if(q.k>=0)(window.WK=window.WK||{})[q.k]=1;
+  var bs=document.querySelectorAll(".op");bs.forEach(function(b,x){if(q.o[x]===q.a)b.classList.add("ok");else if(x===j)b.classList.add("no")});
+  var bd=document.querySelector("#app .bd");if(bd){bd.classList.add("shk")}var h=$("#rh");if(h)h.innerHTML=rHud(it);rNext(it)}
+function rEnd(){var it=L.q[L.i];if(!it||it.done)return;it.done=1;rStop();var xp=it.sc*2+it.best*2;L.xp+=xp;L.d++;L.st="ok";hap(true);
+  var tot=it.ri+1>it.qs.length?it.qs.length:it.ri+1;
+  $("#app").innerHTML='<div class="top"><button class="x" onclick="home()">✕</button><div class="pg"><i style="width:'+(L.d/L.tot*100)+'%"></i></div><span></span></div><div class="bd"><div class="end" style="min-height:0"><div class="e">'+(it.lives<=0?"💥":it.sc>=it.qs.length*.8?"🏆":"⚡")+'</div><h1>'+it.sc+' / '+it.qs.length+'</h1><p>'+(it.lives<=0?"Jonlar tugadi · ":"")+'🔥 eng uzun seriya: '+it.best+' · +'+xp+' XP</p></div></div><div class="ft ok"><button class="btn" onclick="L.i++;L.st=\'ask\';draw()">Davom etish</button></div>'}
 function fixAdj(a){for(var i=1;i<a.length;i++){if(a[i].t===a[i-1].t){for(var j=i+1;j<a.length;j++){if(a[j].t!==a[i-1].t&&(!a[i+1]||a[j].t!==a[i+1].t||j===i+1)){var x=a[i];a[i]=a[j];a[j]=x;break}}}}return a}
 function exOld(w){var e=mkEx(pickType(w.r),w.it,-1);e.old=w;return e}
 function mk(u){var q=[];
@@ -308,7 +319,7 @@ function draw(){var it=L.q[L.i];if(!it)return L.test?finTest():L.rev?finRev():fi
       '<div class="ru">'+esc(s[1])+spk()+'</div><div class="tr">🗣 '+esc(trl(s[1]))+'</div><div class="wl" data-n="'+s[0]+'"></div><div class="uz">'+esc(s[2])+'</div>'+
       '<div class="when">📍 <b>Qayerda va qachon aytiladi:</b><br>'+esc(s[4]||DAYS[DAY-1].s)+'</div>';
     ft='<div class="ft"><button class="btn" onclick="nxt('+(it.re?0:1)+')">'+(it.re?'Esladim, davom etish':'Tushunarli')+'</button></div>'}
-  else if(it.t==="race"){if(!it.done&&!it.run){b='<div class="q">⚡ Tezkor musobaqa</div><div class="owl"><div class="o">🦊</div><div class="bub">45 soniyada nechta savolga javob bera olasiz? Tez bosing!</div></div>';ft='<div class="ft"><button class="btn" onclick="rStart()">Boshlash ⚡</button></div>'}else return it.done?0:rDraw()}
+  else if(it.t==="race"){if(!it.done&&!it.run){b='<div class="q">⚡ Tezkor musobaqa</div><div class="owl"><div class="o">🦊</div><div class="bub">Har javobga vaqt kam va u tobora qisqaradi! 3 jon bor. Tez bosing, seriya qiling! 🔥</div></div>';ft='<div class="ft"><button class="btn" onclick="rStart()">Boshlash ⚡</button></div>'}else return it.done?0:rDraw()}
   else if(it.t==="match"){
     b='<div class="q">Juftliklarni toping</div><div class="mt">'+it.cells.map(function(c,j){var cls=it.gone[j]?"gone":it.bad&&it.bad.indexOf(j)>=0?"no":it.sel===j?"sel":"";
       return '<button class="op mtc '+cls+'" '+(it.gone[j]||L.st!=="ask"?"disabled":'onclick="mt('+j+')"')+'>'+esc(c.t)+'</button>'}).join("")+'</div>';
